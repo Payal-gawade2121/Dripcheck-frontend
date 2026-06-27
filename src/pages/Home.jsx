@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { fetchWardrobe as fetchWardrobeApi } from '../api';
+import { useAuth } from '../AuthContext';
 
 const categories = ['Top Wear', 'Bottom Wear', 'Foot Wear'];
 
@@ -22,7 +24,7 @@ const categoryIcons = {
   ),
 };
 
-const products = [
+const mockProducts = [
   { id: 1,  name: 'Classic White Tee',   category: 'Top Wear',    price: '₹1,999',  badge: 'New',   image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80' },
   { id: 2,  name: 'Denim Jacket',        category: 'Top Wear',    price: '₹4,299',  badge: 'Hot',   image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80' },
   { id: 7,  name: 'Black Hoodie',        category: 'Top Wear',    price: '₹3,499',  badge: null,    image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500&q=80' },
@@ -38,14 +40,51 @@ const products = [
 ];
 
 const badgeColors = {
-  'New':  'bg-emerald-500',
-  'Hot':  'bg-orange-500',
-  'Sale': 'bg-rose-500',
+  'New':      'bg-emerald-500',
+  'Hot':      'bg-orange-500',
+  'Sale':     'bg-rose-500',
+  'AI':       'bg-emerald-600',
+  'Fallback': 'bg-amber-600',
 };
 
 export default function Home({ onNavigate }) {
+  const [productsList, setProductsList] = useState(mockProducts);
   const [selectedCategory, setSelectedCategory] = useState('Top Wear');
   const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // ✅ Hook at top level of component
+  const { mobileNo } = useAuth();
+
+  const fetchWardrobe = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchWardrobeApi(mobileNo);
+      if (data && data.length > 0) {
+        const mapped = data.map(item => ({
+          id: item.item_id,
+          name: item.name,
+          category:
+            item.category === 'Top'      ? 'Top Wear'    :
+            item.category === 'Bottom'   ? 'Bottom Wear' :
+            item.category === 'Footwear' ? 'Foot Wear'   : 'Top Wear',
+          price: item.brand || 'Personal Wardrobe',
+          badge: item.ai_generated ? 'AI' : (item.fallback_used ? 'Fallback' : null),
+          image: item.image_url
+            ? `http://localhost:8000${item.image_url}`
+            : 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80',
+        }));
+        setProductsList([...mapped, ...mockProducts]);
+      }
+    } catch (e) {
+      console.error('Failed to fetch wardrobe:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWardrobe();
+  }, []);
 
   const toggleWishlist = (id) => {
     setWishlist(prev =>
@@ -53,7 +92,7 @@ export default function Home({ onNavigate }) {
     );
   };
 
-  const filteredProducts = products.filter(p => p.category === selectedCategory);
+  const filteredProducts = productsList.filter(p => p.category === selectedCategory);
 
   return (
     <div className="w-full max-w-md mx-auto min-h-screen sm:min-h-[auto] flex flex-col bg-[#f0f0f0] sm:bg-transparent relative">
@@ -70,6 +109,17 @@ export default function Home({ onNavigate }) {
           <h1 className="text-2xl font-bold text-gray-900 mt-0.5">Discover</h1>
         </div>
         <div className="flex items-center gap-3">
+          {/* Add Item Button */}
+          <button
+            onClick={() => onNavigate('add-product')}
+            className="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-teal-500 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 hover:shadow-lg hover:from-emerald-600 hover:to-teal-600 transition-all cursor-pointer"
+            title="Add Product"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.8} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+
           {/* Wishlist count */}
           <div className="relative w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
             <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -81,6 +131,7 @@ export default function Home({ onNavigate }) {
               </span>
             )}
           </div>
+
           {/* Avatar */}
           <div className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">
             DC
@@ -124,6 +175,13 @@ export default function Home({ onNavigate }) {
           </svg>
         </button>
       </div>
+
+      {/* ───── Loading indicator ───── */}
+      {loading && (
+        <div className="flex justify-center py-4">
+          <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
 
       {/* ───── Product Grid ───── */}
       <div className="flex-1 px-4 pb-8 overflow-y-auto">

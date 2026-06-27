@@ -1,24 +1,35 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { verifyOtp } from '../api';
+import { useAuth } from '../AuthContext';
 import AuthCard from '../components/AuthCard';
 import Button from '../components/Button';
 
 export default function OTP({ onNavigate }) {
   const [otp, setOtp] = useState(['', '', '', '']);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  // ✅ Hook called at top level — NOT inside an async function
+  const { mobileNo } = useAuth();
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
-    
     setOtp([...otp.map((d, idx) => (idx === index ? element.value : d))]);
-    
-    // Focus next input
     if (element.nextSibling && element.value !== '') {
       element.nextSibling.focus();
     }
   };
 
-  const handleVerify = () => {
-    if (otp.join('').length === 4) {
+  const handleVerify = async () => {
+    if (otp.join('').length !== 4) return;
+    setLoading(true);
+    setError('');
+    try {
+      await verifyOtp(mobileNo, otp.join(''));
       onNavigate('login');
+    } catch (e) {
+      setError(e.message || 'OTP verification failed');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,23 +50,23 @@ export default function OTP({ onNavigate }) {
   return (
     <AuthCard title="Verify Mobile" subtitle="Enter the 4-digit code sent to your number" footer={footer}>
       <div className="flex justify-center space-x-4 mb-8 mt-4">
-        {otp.map((data, index) => {
-          return (
-            <input
-              className="w-14 h-14 text-center text-2xl font-bold rounded-2xl border border-gray-200 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-all"
-              type="text"
-              name="otp"
-              maxLength="1"
-              key={index}
-              value={data}
-              onChange={e => handleChange(e.target, index)}
-              onFocus={e => e.target.select()}
-            />
-          );
-        })}
+        {otp.map((data, index) => (
+          <input
+            key={index}
+            className="w-14 h-14 text-center text-2xl font-bold rounded-2xl border border-gray-200 bg-white focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 transition-all"
+            type="text"
+            name="otp"
+            maxLength="1"
+            value={data}
+            onChange={e => handleChange(e.target, index)}
+            onFocus={e => e.target.select()}
+          />
+        ))}
       </div>
-      
-      <Button onClick={handleVerify}>Verify</Button>
+      {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+      <Button onClick={handleVerify} disabled={loading}>
+        {loading ? 'Verifying...' : 'Verify'}
+      </Button>
     </AuthCard>
   );
 }
