@@ -12,7 +12,7 @@ export default function Login({ onNavigate }) {
   const [countryCode, setCountryCode] = useState('+91');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { setAuthToken, setMobileNo } = useAuth();
+  const { setAuthToken, setMobileNo, setIsLoggedIn } = useAuth();
 
   const countryOptions = [
     { label: '+1 (US)', value: '+1' },
@@ -31,10 +31,17 @@ export default function Login({ onNavigate }) {
     setError('');
     try {
       const data = await login(fullNumber);
-      const { token, is_new_user } = data;
-      setAuthToken(token);
+      const { redirect_url, onboarding_data } = data;
+      
+      // Tokens are no longer returned by the API
+      setAuthToken(''); 
       setMobileNo(fullNumber);
-      onNavigate(is_new_user ? 'onboarding' : 'home');
+      setIsLoggedIn(true);
+      
+      // Optionally store or log onboarding_data if needed
+      console.log("User onboarding data:", onboarding_data);
+
+      onNavigate(redirect_url === '/onboarding' ? 'onboarding' : 'home');
     } catch (e) {
       setError(e.message || 'Login failed');
     } finally {
