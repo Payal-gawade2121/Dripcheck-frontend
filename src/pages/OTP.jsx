@@ -9,7 +9,7 @@ export default function OTP({ onNavigate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   // ✅ Hook called at top level — NOT inside an async function
-  const { mobileNo } = useAuth();
+  const { mobileNo, setIsLoggedIn } = useAuth();
 
   const handleChange = (element, index) => {
     if (isNaN(element.value)) return false;
@@ -24,8 +24,10 @@ export default function OTP({ onNavigate }) {
     setLoading(true);
     setError('');
     try {
-      await verifyOtp(mobileNo, otp.join(''));
-      onNavigate('login');
+      const data = await verifyOtp(mobileNo, otp.join(''));
+      const { redirect_url } = data;
+      setIsLoggedIn(true);
+      onNavigate(redirect_url === '/onboarding' ? 'onboarding' : 'home');
     } catch (e) {
       setError(e.message || 'OTP verification failed');
     } finally {

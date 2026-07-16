@@ -4,11 +4,15 @@ import AuthCard from '../components/AuthCard';
 import Input from '../components/Input';
 import Chips from '../components/Chips';
 import Button from '../components/Button';
+import { submitOnboarding } from '../api';
+import { useAuth } from '../AuthContext';
 
 export default function Onboarding({ onComplete }) {
   const [step, setStep] = useState(1);
   const totalSteps = 6;
   const [customColor, setCustomColor] = useState('#000000');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mobileNo } = useAuth();
 
   // Form State
   const [formData, setFormData] = useState({
@@ -26,12 +30,20 @@ export default function Onboarding({ onComplete }) {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
       console.log('Onboarding Complete:', formData);
-      onComplete(); // Navigate to main app
+      setIsSubmitting(true);
+      try {
+        await submitOnboarding(formData, formData.fullName, formData.email, mobileNo);
+        onComplete(); // Navigate to main app
+      } catch (err) {
+        console.error("Failed to submit onboarding:", err);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -203,7 +215,7 @@ export default function Onboarding({ onComplete }) {
 
   const footer = (
     <div className="flex flex-col space-y-3 mt-8">
-      <Button onClick={handleNext}>{step === totalSteps ? 'Finish' : 'Next'}</Button>
+      <Button onClick={handleNext} disabled={isSubmitting}>{isSubmitting ? 'Submitting...' : (step === totalSteps ? 'Finish' : 'Next')}</Button>
       {step > 1 && (
         <button onClick={handleBack} className="text-gray-500 font-semibold text-sm hover:text-black">
           Back
