@@ -6,8 +6,10 @@ import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
 import Home from './pages/Home';
 import AddProduct from './pages/AddProduct';
+import Profile from './pages/Profile';
+import Wardrobe from './pages/Wardrobe';
 
-const loggedInPages = new Set(['home', 'onboarding', 'add-product']);
+const loggedInPages = new Set(['home', 'onboarding', 'add-product', 'profile', 'wardrobe']);
 
 function getInitialPage() {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -43,6 +45,10 @@ function App() {
         return <Home onNavigate={navigate} />;
       case 'add-product':
         return <AddProduct onNavigate={navigate} />;
+      case 'profile':
+        return <Profile onNavigate={navigate} />;
+      case 'wardrobe':
+        return <Wardrobe onNavigate={navigate} />;
       default:
         return <Signup onNavigate={navigate} />;
     }

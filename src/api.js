@@ -81,3 +81,6 @@ export function deleteWardrobeItem(user_id, item_id) {
 export function fetchBestSellingProducts() {
   return getJson("/api/marketplace");
 }
+export function fetchBundles(user_id) {
+  return getJson(`/api/bundles/${user_id}`);
+}

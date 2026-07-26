@@ -21,12 +21,20 @@ const categoryColors = {
   'Accessory': 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
+const mapCategory = (cat) => {
+  if (!cat) return 'Top Wear';
+  if (cat === 'Top' || cat === 'Top Wear') return 'Top Wear';
+  if (cat === 'Bottom' || cat === 'Bottom Wear') return 'Bottom Wear';
+  if (cat === 'Footwear' || cat === 'Foot Wear') return 'Foot Wear';
+  return 'Top Wear';
+};
+
 export default function AddProduct({ onNavigate }) {
   // Step machine: 'form' → 'loading' → 'preview' | 'avatar'
   const [step, setStep] = useState('form');
   const [activeMode, setActiveMode] = useState(null); // 'upload' | 'avatar'
   const [inputMode, setInputMode] = useState('link');
-  const { mobileNo } = useAuth();
+  const { userUid } = useAuth();
 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -68,6 +76,9 @@ export default function AddProduct({ onNavigate }) {
   const [editedProduct, setEditedProduct] = useState(null);
   const [avatarResult, setAvatarResult] = useState(null);
   const [errorMsg, setErrorMsg] = useState('');
+  
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [addedCategory, setAddedCategory] = useState('');
 
   useEffect(() => {
     let interval;
@@ -112,7 +123,7 @@ export default function AddProduct({ onNavigate }) {
     return true;
   };
 
-  const currentUserId = mobileNo;
+  const currentUserId = userUid;
 
   const ensureUser = () => {
     if (currentUserId) return true;
@@ -142,8 +153,13 @@ export default function AddProduct({ onNavigate }) {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        alert('Success! Added to wardrobe.');
-        onNavigate('home');
+        const addedCat = data.product?.category || 'Top Wear';
+        setAddedCategory(addedCat);
+        setShowSuccessPopup(true);
+        setTimeout(() => {
+           localStorage.setItem('wardrobeCategory', mapCategory(addedCat));
+           onNavigate('wardrobe');
+        }, 1500);
       } else {
         setErrorMsg(data.error || 'Failed to add product from link.');
         setStep('form');
@@ -254,8 +270,17 @@ export default function AddProduct({ onNavigate }) {
       });
       const data = await response.json();
       if (response.ok && data.success) {
-        if (approved) alert('Success! Added to wardrobe.');
-        onNavigate('home');
+        if (approved) {
+           const addedCat = editedProduct.category;
+           setAddedCategory(addedCat);
+           setShowSuccessPopup(true);
+           setTimeout(() => {
+              localStorage.setItem('wardrobeCategory', mapCategory(addedCat));
+              onNavigate('wardrobe');
+           }, 1500);
+        } else {
+           onNavigate('home');
+        }
       } else {
         alert(data.error || 'Failed to save product.');
         setStep('preview');
@@ -270,6 +295,28 @@ export default function AddProduct({ onNavigate }) {
   const updateMetadataField = (field, val) => {
     setEditedProduct(prev => ({ ...prev, metadata: { ...prev.metadata, [field]: val } }));
   };
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // RENDER: Success Popup Overlay
+  // ════════════════════════════════════════════════════════════════════════════
+  if (showSuccessPopup) {
+    return (
+      <div className="w-full max-w-md mx-auto h-full flex flex-col items-center justify-center bg-[#f0f0f0] text-gray-900 scrollbar-hide p-8 text-center relative overflow-hidden">
+         <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(16,185,129,0.5)] animate-bounce">
+            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+         </div>
+         <h2 className="text-2xl font-black text-gray-900 mb-2">Success!</h2>
+         <p className="text-sm font-semibold text-gray-500">
+            Product added to your wardrobe.
+         </p>
+         <p className="text-xs text-gray-400 mt-8 animate-pulse">
+            Redirecting to {mapCategory(addedCategory)}...
+         </p>
+      </div>
+    );
+  }
 
   // ════════════════════════════════════════════════════════════════════════════
   // RENDER: Form Step
