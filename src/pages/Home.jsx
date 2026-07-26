@@ -1,338 +1,246 @@
 import React, { useState, useEffect } from 'react';
-import { deleteWardrobeItem, fetchWardrobe as fetchWardrobeApi } from '../api';
 import { useAuth } from '../AuthContext';
 
-const categories = ['Top Wear', 'Bottom Wear', 'Foot Wear'];
-
-const categoryIcons = {
-  'Top Wear': (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z" />
-    </svg>
-  ),
-  'Bottom Wear': (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M6 2h12l2 7H4L6 2zM4 9l2 13h4l2-6 2 6h4l2-13" />
-    </svg>
-  ),
-  'Foot Wear': (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
-      <path d="M3 13l2-8h9l4 8" />
-      <path d="M3 13h18v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4z" />
-      <path d="M14 5l1 8" />
-    </svg>
-  ),
-};
-
-const mockProducts = [
-  { id: 1, name: 'Classic White Tee', category: 'Top Wear', price: '₹1,999', badge: 'New', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80' },
-  { id: 2, name: 'Denim Jacket', category: 'Top Wear', price: '₹4,299', badge: 'Hot', image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500&q=80' },
-  { id: 7, name: 'Black Hoodie', category: 'Top Wear', price: '₹3,499', badge: null, image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500&q=80' },
-  { id: 10, name: 'Striped Polo Shirt', category: 'Top Wear', price: '₹2,199', badge: 'Sale', image: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=500&q=80' },
-  { id: 3, name: 'Slim Fit Jeans', category: 'Bottom Wear', price: '₹3,199', badge: 'New', image: 'https://images.unsplash.com/photo-1542272604-780c823d79fc?w=500&q=80' },
-  { id: 4, name: 'Cargo Pants', category: 'Bottom Wear', price: '₹3,599', badge: 'Hot', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=500&q=80' },
-  { id: 8, name: 'Jogger Sweatpants', category: 'Bottom Wear', price: '₹2,399', badge: null, image: 'https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=500&q=80' },
-  { id: 11, name: 'Chino Shorts', category: 'Bottom Wear', price: '₹1,899', badge: 'Sale', image: 'https://images.unsplash.com/photo-1591195853828-11db59a44f43?w=500&q=80' },
-  { id: 5, name: 'Running Sneakers', category: 'Foot Wear', price: '₹6,499', badge: 'Hot', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
-  { id: 6, name: 'Casual Loafers', category: 'Foot Wear', price: '₹4,799', badge: null, image: 'https://images.unsplash.com/photo-1614252339460-a433a0026eaf?w=500&q=80' },
-  { id: 9, name: 'Leather Boots', category: 'Foot Wear', price: '₹9,999', badge: 'New', image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500&q=80' },
-  { id: 12, name: 'White Chunky Kicks', category: 'Foot Wear', price: '₹7,299', badge: 'Sale', image: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=500&q=80' },
-];
-
-const badgeColors = {
-  'New': 'bg-emerald-500',
-  'Hot': 'bg-orange-500',
-  'Sale': 'bg-rose-500',
-  'AI': 'bg-emerald-600',
-  'Fallback': 'bg-amber-600',
-};
-
 export default function Home({ onNavigate }) {
-  const [productsList, setProductsList] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('Top Wear');
-  const [wishlist, setWishlist] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-  const [showAccountMenu, setShowAccountMenu] = useState(false);
-  // ✅ Hook at top level of component
-  const { mobileNo, setAuthToken, setMobileNo, setIsLoggedIn } = useAuth();
-
-  const fetchWardrobe = async () => {
-    if (!mobileNo) {
-      setProductsList([]);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const data = await fetchWardrobeApi(mobileNo);
-      if (data && data.length > 0) {
-        const mapped = data.map(item => ({
-          id: item.item_id,
-          name: item.name,
-          category:
-            item.category === 'Top' ? 'Top Wear' :
-              item.category === 'Bottom' ? 'Bottom Wear' :
-                item.category === 'Footwear' ? 'Foot Wear' : 'Top Wear',
-          price: item.brand || 'Personal Wardrobe',
-          badge: item.ai_generated ? 'AI' : (item.fallback_used ? 'Fallback' : null),
-          image: item.image_url
-            ? `http://localhost:8000${item.image_url}`
-            : 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80',
-        }));
-        setProductsList(mapped);
-      } else {
-        setProductsList([]);
-      }
-    } catch (e) {
-      console.error('Failed to fetch wardrobe:', e);
-      setProductsList([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [bundles, setBundles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { userUid } = useAuth();
 
   useEffect(() => {
-    fetchWardrobe();
-  }, [mobileNo]);
+    const loadBundles = async () => {
+      try {
+        setLoading(true);
+        if (!userUid) return;
+        const { fetchWardrobe, fetchBundles } = await import('../api');
+        const [wardrobeData, bundleData] = await Promise.all([
+          fetchWardrobe(userUid),
+          fetchBundles(userUid)
+        ]);
 
-  const toggleWishlist = (id) => {
-    setWishlist(prev =>
-      prev.includes(id) ? prev.filter(w => w !== id) : [...prev, id]
-    );
-  };
+        if (bundleData && bundleData.length > 0 && wardrobeData) {
+          const wardrobeMap = {};
+          wardrobeData.forEach(item => {
+            wardrobeMap[item.item_id] = item;
+          });
 
-  const handleDeleteItem = async (product) => {
-    if (!mobileNo || !product?.id) return;
-    const confirmed = window.confirm(`Delete "${product.name}" from your wardrobe?`);
-    if (!confirmed) return;
+          const newBundles = bundleData.map(bundle => {
+            const items = (bundle.items || []).map(id => wardrobeMap[id]).filter(Boolean);
+            const top = items.find(i => i.category === 'Top');
+            const bottom = items.find(i => i.category === 'Bottom');
+            const footwear = items.find(i => i.category === 'Footwear');
 
-    try {
-      setDeletingId(product.id);
-      await deleteWardrobeItem(mobileNo, product.id);
-      setProductsList(prev => prev.filter(item => item.id !== product.id));
-      setWishlist(prev => prev.filter(id => id !== product.id));
-    } catch (e) {
-      console.error('Failed to delete wardrobe item:', e);
-      alert(e.error || e.detail || 'Failed to delete item.');
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const filteredProducts = productsList.filter(p => p.category === selectedCategory);
-
-  const handleLogout = () => {
-    setAuthToken('');
-    setMobileNo('');
-    setIsLoggedIn(false);
-    localStorage.removeItem('currentPage');
-    setShowAccountMenu(false);
-    onNavigate('login');
-  };
+            return {
+              id: bundle.bundle_id,
+              // title: (top ? top.name : 'Curated') + ' & More',
+              // price: 'Personal Wardrobe',
+              description: bundle.style_tags ? bundle.style_tags.join(' • ') : 'A curated outfit based on items from your wardrobe.',
+              top,
+              bottom,
+              footwear,
+              tags: bundle.occasion_tags && bundle.occasion_tags.length > 0 ? bundle.occasion_tags.map(t => `#${t.replace(/\s+/g, '')}`) : ['#MyWardrobe'],
+              match: bundle.compatibility_score ? Math.round(bundle.compatibility_score) : (90 + Math.floor(Math.random() * 10))
+            };
+          });
+          setBundles(newBundles);
+        } else {
+          setBundles([]);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadBundles();
+  }, [userUid]);
 
   return (
-    <div className="w-full h-full flex flex-col bg-[#f0f0f0] relative overflow-y-auto scrollbar-hide">
+    <div className="w-full h-full flex flex-col bg-white relative overflow-hidden">
 
-      {/* Notch Mock */}
-      {/*<div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-7 bg-black rounded-b-3xl sm:hidden z-10">
-        <div className="absolute top-2 right-6 w-1.5 h-1.5 bg-orange-400 rounded-full"></div>
-      </div>*/}
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-24">
 
-      {/* ───── Header ───── */}
-      <div className="pt-12 px-6 pb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-400 font-semibold tracking-widest uppercase">DRIPCHECK</p>
-          <h1 className="text-2xl font-bold text-gray-900 mt-0.5">Discover</h1>
+        {/* Header */}
+        <div className="px-6 pt-12 pb-4">
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">
+            Discover Your Perfect Drip
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Curated outfits from our community.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          {/* Add Item Button */}
-          <button
-            onClick={() => onNavigate('add-product')}
-            className="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-teal-500 text-white rounded-full flex items-center justify-center shadow-md active:scale-90 hover:shadow-lg hover:from-emerald-600 hover:to-teal-600 transition-all cursor-pointer"
-            title="Add Product"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.8} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
 
-          {/* Wishlist count */}
-          <div className="relative w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
-            <svg className="w-5 h-5 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-            {wishlist.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-black text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {wishlist.length}
-              </span>
-            )}
-          </div>
-
-          {/* Account menu */}
+        {/* Search Bar */}
+        <div className="px-6 mb-5">
           <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowAccountMenu(prev => !prev)}
-              className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm active:scale-90 hover:bg-gray-900 transition-all"
-              title="Account"
-              aria-haspopup="menu"
-              aria-expanded={showAccountMenu}
-            >
-              DC
-            </button>
-            {showAccountMenu && (
-              <div className="absolute right-0 top-12 z-20 w-32 rounded-2xl bg-white border border-gray-100 shadow-lg p-1.5">
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="w-full px-3 py-2 text-left text-sm font-semibold text-gray-800 rounded-xl hover:bg-gray-100 active:scale-[0.98] transition"
-                >
-                  Log out
-                </button>
-              </div>
-            )}
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search styles, themes, or items..."
+              className="w-full bg-white border border-gray-200 text-sm rounded-2xl py-3 pl-11 pr-4 focus:outline-none focus:border-gray-300 transition-colors shadow-sm"
+            />
           </div>
         </div>
-      </div>
 
-      {/* ───── Category Tabs ───── */}
-      <div className="px-6 mb-5">
-        <div className="bg-white rounded-2xl p-1.5 flex gap-1 shadow-sm border border-gray-100">
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              className={`flex-1 flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl text-xs font-semibold transition-all duration-200 ${selectedCategory === cat
-                ? 'bg-black text-white shadow-md'
-                : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-                }`}
-            >
-              <span className={selectedCategory === cat ? 'text-white' : 'text-gray-400'}>
-                {categoryIcons[cat]}
-              </span>
-              <span className="leading-tight text-center" style={{ fontSize: '10px' }}>
+        {/* Quick Search Categories */}
+        <div className="pl-6 mb-8 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-2 min-w-max pr-6">
+            {['All', 'Minimalist', 'Streetwear', 'Sporty/Athleisure'].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${selectedCategory === cat
+                  ? 'bg-[#0a0f1c] text-white border-[#0a0f1c]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                  }`}
+              >
                 {cat}
-              </span>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <hr className="border-gray-100" />
+
+        {/* Personalized for You (Bundle UI) */}
+        <div className="px-6 mt-8 mb-8">
+          <h2 className="text-[19px] font-bold text-gray-900 mb-5">Best Bundles from Wardrobe</h2>
+
+          {loading ? (
+            <div className="flex justify-center py-4">
+              <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : bundles.length === 0 ? (
+            <p className="text-sm text-gray-500">Not enough items in your wardrobe to create a bundle. Add a Top, Bottom, and Footwear!</p>
+          ) : (
+            <div className="flex flex-col gap-6">
+              {bundles.map((bundle, index) => (
+                <div key={index} className="bg-white rounded-3xl p-2 border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+
+                  {/* Image Split Section */}
+                  <div className="w-full h-[220px] rounded-[20px] overflow-hidden flex bg-gray-300">
+                    {/* Left: Top */}
+                    <a
+                      href={bundle.top?.product_url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-3 border-r border-white/20 bg-cover bg-center block hover:opacity-95 transition-opacity"
+                      style={bundle.top?.image_url ? { backgroundImage: `url(http://localhost:8000${bundle.top.image_url})` } : {}}
+                    >
+                      <div className="flex-1 flex items-center justify-center">
+                        {!bundle.top?.image_url && <span className="font-bold text-black text-sm">Top</span>}
+                      </div>
+                      <div className="bg-white/90 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] font-bold text-black w-max self-start shadow-sm">
+                        Top
+                      </div>
+                    </a>
+                    {/* Center: Bottom */}
+                    <a
+                      href={bundle.bottom?.product_url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-3 border-r border-white/20 bg-cover bg-center block hover:opacity-95 transition-opacity"
+                      style={bundle.bottom?.image_url ? { backgroundImage: `url(http://localhost:8000${bundle.bottom.image_url})` } : {}}
+                    >
+                      <div className="flex-1 flex items-center justify-center">
+                        {!bundle.bottom?.image_url && <span className="font-bold text-black text-sm">Bottom</span>}
+                      </div>
+                      <div className="bg-white/90 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] font-bold text-black w-max self-start shadow-sm">
+                        Bottom
+                      </div>
+                    </a>
+                    {/* Right: Footwear */}
+                    <a
+                      href={bundle.footwear?.product_url || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-3 bg-cover bg-center block hover:opacity-95 transition-opacity"
+                      style={bundle.footwear?.image_url ? { backgroundImage: `url(http://localhost:8000${bundle.footwear.image_url})` } : {}}
+                    >
+                      <div className="flex-1 flex items-center justify-center">
+                        {!bundle.footwear?.image_url && <span className="font-bold text-black text-sm">Footwear</span>}
+                      </div>
+                      <div className="bg-white/90 backdrop-blur-sm rounded-md px-2 py-1 text-[10px] font-bold text-black w-max self-start shadow-sm">
+                        Footwear
+                      </div>
+                    </a>
+                  </div>
+
+                  {/* Bundle Details */}
+                  <div className="p-4 pt-5 pb-3">
+                    <div className="flex justify-between items-start mb-1.5">
+                      <h3 className="font-bold text-gray-900 text-lg">{bundle.title}</h3>
+                      <span className="font-bold text-[#f59e0b] text-[17px]">{bundle.price}</span>
+                    </div>
+                    <p className="text-gray-500 text-sm mb-5">
+                      {bundle.description}
+                    </p>
+
+                    {/* Tags and Match */}
+                    <div className="flex items-center justify-between mb-5">
+                      <div className="bg-indigo-50/50 text-indigo-900 text-xs font-semibold px-2.5 py-1 rounded-md">
+                        {bundle.tags[0]}
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-[#f59e0b] rounded-full" style={{ width: `${bundle.match}%` }}></div>
+                        </div>
+                        <span className="text-xs font-bold text-gray-900">{bundle.match}%</span>
+                      </div>
+                    </div>
+
+                    <hr className="border-gray-50 mb-5" />
+
+                    {/* Actions */}
+                    <div className="flex gap-2.5">
+                      {/* <button className="flex-1 bg-black hover:bg-gray-900 text-white font-semibold py-3.5 rounded-xl transition-colors text-[14px] shadow-sm">
+                        Wear This
+                      </button>*/}
+                      <button className="px-6 py-2 bg-white border border-gray-100 hover:bg-gray-50 rounded-full flex items-center justify-center text-gray-500 transition-colors shadow-sm">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ───── Section label ───── */}
-      <div className="px-6 mb-4 flex items-center justify-between">
-        <p className="text-sm font-semibold text-gray-800">
-          {filteredProducts.length} items in <span className="text-black">{selectedCategory}</span>
-        </p>
-        <button className="text-xs font-semibold text-gray-400 flex items-center gap-1 hover:text-black transition-colors">
-          Filter
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h18M7 12h10M11 20h2" />
+      {/* Bottom Navbar */}
+      <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-8 py-3 pb-5 flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgb(0,0,0,0.03)] z-10">
+        <button className="flex flex-col items-center gap-1 text-black">
+          <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+            <path d="M11.47 3.84a.75.75 0 011.06 0l8.69 8.69a.75.75 0 101.06-1.06l-8.689-8.69a2.25 2.25 0 00-3.182 0l-8.69 8.69a.75.75 0 001.061 1.06l8.69-8.69z" />
+            <path d="M12 5.432l8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 01-.75-.75v-4.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21a.75.75 0 01-.75.75H5.625a1.875 1.875 0 01-1.875-1.875v-6.198a2.29 2.29 0 00.091-.086L12 5.43z" />
           </svg>
+          <span className="text-[10px] font-bold">Home</span>
+        </button>
+
+        <button onClick={() => onNavigate('wardrobe')} className="flex flex-col items-center gap-1 text-gray-400 hover:text-black transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"></path>
+          </svg>
+          <span className="text-[10px] font-bold">Wardrobe</span>
+        </button>
+
+        <button onClick={() => onNavigate('profile')} className="flex flex-col items-center gap-1 text-gray-400 hover:text-black transition-colors">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <span className="text-[10px] font-bold">Profile</span>
         </button>
       </div>
 
-      {/* ───── Loading indicator ───── */}
-      {loading && (
-        <div className="flex justify-center py-4">
-          <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
-
-      {/* ───── Product Grid ───── */}
-      <div className="flex-1 px-4 pb-8 overflow-y-auto">
-        {filteredProducts.length === 0 && !loading ? (
-          <div className="min-h-[360px] flex flex-col items-center justify-center text-center px-6">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z" />
-              </svg>
-            </div>
-            <h3 className="text-base font-bold text-gray-900">Your wardrobe is empty</h3>
-            <p className="text-xs text-gray-500 mt-1 max-w-[220px]">
-              Add a clothing item with a product link or upload a photo to start building outfits.
-            </p>
-            <button
-              onClick={() => onNavigate('add-product')}
-              className="mt-5 px-5 py-3 bg-black text-white rounded-full text-sm font-bold shadow-sm active:scale-95 transition"
-            >
-              Add Clothing Item
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {filteredProducts.map(product => (
-              <div
-                key={product.id}
-                className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow duration-300"
-              >
-                {/* Image */}
-                <div className="relative w-full aspect-[4/5] bg-gray-50 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-
-                  {/* Badge */}
-                  {product.badge && (
-                    <div className={`absolute top-2 left-2 ${badgeColors[product.badge]} text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide`}>
-                      {product.badge}
-                    </div>
-                  )}
-
-                  {/* Wishlist button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
-                    className="absolute top-2 right-2 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm transition-transform active:scale-90"
-                    title="Wishlist"
-                  >
-                    <svg
-                      className="w-3.5 h-3.5"
-                      fill={wishlist.includes(product.id) ? 'currentColor' : 'none'}
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      style={{ color: wishlist.includes(product.id) ? '#ef4444' : '#374151' }}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
-
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); handleDeleteItem(product); }}
-                    disabled={deletingId === product.id}
-                    className="absolute top-2 right-11 w-7 h-7 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-sm transition-transform active:scale-90 disabled:opacity-60"
-                    title="Delete item"
-                  >
-                    {deletingId === product.id ? (
-                      <span className="w-3.5 h-3.5 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M10 11v6M14 11v6M9 7l1-3h4l1 3M8 7l1 13h6l1-13" />
-                      </svg>
-                    )}
-                  </button>
-                </div>
-
-                {/* Info */}
-                <div className="p-3">
-                  <h3 className="font-semibold text-gray-800 text-xs truncate mb-1">{product.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <p className="font-bold text-black text-sm">{product.price}</p>
-                    <button className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition-colors">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }

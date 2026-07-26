@@ -5,6 +5,8 @@ const AuthContext = createContext({
   setAuthToken: () => {},
   mobileNo: '',
   setMobileNo: () => {},
+  userUid: '',
+  setUserUid: () => {},
   isLoggedIn: false,
   setIsLoggedIn: () => {},
 });
@@ -12,6 +14,7 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
   const [authToken, setAuthToken] = useState(localStorage.getItem('authToken') || '');
   const [mobileNo, setMobileNo] = useState(localStorage.getItem('mobileNo') || '');
+  const [userUid, setUserUid] = useState(localStorage.getItem('userUid') || '');
   const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
 
   useEffect(() => {
@@ -19,12 +22,14 @@ export const AuthProvider = ({ children }) => {
     else localStorage.removeItem('authToken');
     if (mobileNo) localStorage.setItem('mobileNo', mobileNo);
     else localStorage.removeItem('mobileNo');
+    if (userUid) localStorage.setItem('userUid', userUid);
+    else localStorage.removeItem('userUid');
     if (isLoggedIn) localStorage.setItem('isLoggedIn', 'true');
     else localStorage.removeItem('isLoggedIn');
-  }, [authToken, mobileNo, isLoggedIn]);
+  }, [authToken, mobileNo, userUid, isLoggedIn]);
 
   return (
-    <AuthContext.Provider value={{ authToken, setAuthToken, mobileNo, setMobileNo, isLoggedIn, setIsLoggedIn }}>
+    <AuthContext.Provider value={{ authToken, setAuthToken, mobileNo, setMobileNo, userUid, setUserUid, isLoggedIn, setIsLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );

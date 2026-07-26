@@ -12,7 +12,7 @@ export default function Onboarding({ onComplete }) {
   const totalSteps = 6;
   const [customColor, setCustomColor] = useState('#000000');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { mobileNo } = useAuth();
+  const { mobileNo, setUserUid } = useAuth();
 
   // Form State
   const [formData, setFormData] = useState({
@@ -37,7 +37,8 @@ export default function Onboarding({ onComplete }) {
       console.log('Onboarding Complete:', formData);
       setIsSubmitting(true);
       try {
-        await submitOnboarding(formData, formData.fullName, formData.email, mobileNo);
+        const result = await submitOnboarding(formData, formData.fullName, formData.email, mobileNo);
+        if (result.user_id) setUserUid(result.user_id);
         onComplete(); // Navigate to main app
       } catch (err) {
         console.error("Failed to submit onboarding:", err);
