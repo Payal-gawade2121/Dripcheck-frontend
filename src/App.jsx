@@ -8,8 +8,9 @@ import Home from './pages/Home';
 import AddProduct from './pages/AddProduct';
 import Profile from './pages/Profile';
 import Wardrobe from './pages/Wardrobe';
+import AiDrip from './pages/AiDrip';
 
-const loggedInPages = new Set(['home', 'onboarding', 'add-product', 'profile', 'wardrobe']);
+const loggedInPages = new Set(['home', 'onboarding', 'add-product', 'profile', 'wardrobe', 'ai-drip']);
 
 function getInitialPage() {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -49,6 +50,8 @@ function App() {
         return <Profile onNavigate={navigate} />;
       case 'wardrobe':
         return <Wardrobe onNavigate={navigate} />;
+      case 'ai-drip':
+        return <AiDrip onNavigate={navigate} />;
       default:
         return <Signup onNavigate={navigate} />;
     }
