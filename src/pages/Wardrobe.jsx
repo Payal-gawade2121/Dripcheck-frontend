@@ -45,6 +45,8 @@ export default function Wardrobe({ onNavigate }) {
   const [wishlist, setWishlist] = useState([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+  const [filter, setFilter] = useState('All');
+  const [showFilter, setShowFilter] = useState(false);
   const { userUid } = useAuth();
 
   const fetchWardrobe = async () => {
@@ -111,7 +113,14 @@ export default function Wardrobe({ onNavigate }) {
     }
   };
 
-  const filteredProducts = productsList.filter(p => p.category === selectedCategory);
+  const filteredProducts = productsList
+    .filter(p => p.category === selectedCategory)
+    .filter(p => {
+      if (filter === 'AI Recommended') return p.badge === 'AI';
+      if (filter === 'Fallback') return p.badge === 'Fallback';
+      if (filter === 'No Badge') return !p.badge;
+      return true;
+    });
 
   return (
     <div className="w-full h-full flex flex-col bg-[#f9fafb] relative overflow-hidden">
@@ -164,10 +173,49 @@ export default function Wardrobe({ onNavigate }) {
         </div>
 
         {/* Section label */}
-        <div className="px-6 mb-4 flex items-center justify-between">
+        <div className="px-6 mb-4 flex items-center justify-between relative">
           <p className="text-sm font-semibold text-gray-800">
             {filteredProducts.length} items in <span className="text-black">{selectedCategory}</span>
           </p>
+          <div className="relative">
+            <button
+              onClick={() => setShowFilter(prev => !prev)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold transition-all duration-200 active:scale-95 border ${
+                filter !== 'All'
+                  ? 'bg-black text-white border-black shadow-sm'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                <path d="M3 6h18M7 12h10M10 18h4" />
+              </svg>
+              {filter !== 'All' ? filter : 'Filter'}
+            </button>
+
+            {showFilter && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
+                <div className="absolute right-0 top-full mt-2 w-44 bg-white rounded-2xl shadow-xl border border-gray-100 p-1.5 z-20">
+                  {['All', 'AI Recommended', 'Fallback', 'No Badge'].map(option => (
+                    <button
+                      key={option}
+                      onClick={() => {
+                        setFilter(option);
+                        setShowFilter(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-[12px] font-semibold transition-colors ${
+                        filter === option
+                          ? 'bg-gray-100 text-black'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Loading indicator */}

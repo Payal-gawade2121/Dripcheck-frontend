@@ -84,6 +84,7 @@ const slotLabels = { topwear: 'Topwear', bottomwear: 'Bottomwear', footwear: 'Fo
 
 export default function AiDrip({ onNavigate }) {
   const [expandedInsight, setExpandedInsight] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative overflow-hidden">
@@ -153,6 +154,26 @@ export default function AiDrip({ onNavigate }) {
           </div>
         </div>
 
+        {/* Category Selector */}
+        <div className="px-5 mt-4">
+          <p className="text-[13px] font-semibold text-gray-700 mb-2">What do you want to buy?</p>
+          <div className="flex gap-2">
+            {Object.keys(slotLabels).map((category) => (
+              <button
+                key={category}
+                onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                className={`flex-1 text-[13px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] ${
+                  selectedCategory === category
+                    ? 'bg-black text-white'
+                    : 'bg-gray-100 text-gray-600 border border-gray-200'
+                }`}
+              >
+                {slotLabels[category]}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Bundle Cards */}
         <div className="px-5 mt-4 space-y-6">
           {bundles.map((bundle) => {
@@ -178,7 +199,7 @@ export default function AiDrip({ onNavigate }) {
                 <div className="flex gap-2">
                   {slots.map((slot) => {
                     const item = bundle.items[slot];
-                    const isAi = bundle.aiSlot === slot;
+                    const isAi = selectedCategory ? selectedCategory === slot : bundle.aiSlot === slot;
 
                     return (
                       <div key={slot} className="flex-1">
@@ -220,7 +241,7 @@ export default function AiDrip({ onNavigate }) {
                       </div>
                       <div>
                         <p className="text-[11px] text-gray-600 leading-relaxed">
-                          AI matched the <strong className="text-gray-900">{slotLabels[bundle.aiSlot].toLowerCase()}</strong> from our catalog to complete your outfit. It was selected based on color harmony, style compatibility, and season relevance with your existing <strong className="text-gray-900">{slots.filter(s => s !== bundle.aiSlot).map(s => slotLabels[s].toLowerCase()).join(' and ')}</strong>.
+                          AI matched the <strong className="text-gray-900">{slotLabels[selectedCategory || bundle.aiSlot].toLowerCase()}</strong> from our catalog to complete your outfit. It was selected based on color harmony, style compatibility, and season relevance with your existing <strong className="text-gray-900">{slots.filter(s => s !== (selectedCategory || bundle.aiSlot)).map(s => slotLabels[s].toLowerCase()).join(' and ')}</strong>.
                         </p>
                         <div className="flex gap-1.5 mt-2.5">
                           <span className="text-[9px] font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/50">Color harmony</span>
