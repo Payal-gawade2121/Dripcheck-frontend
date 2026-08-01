@@ -57,7 +57,7 @@ export default function Wardrobe({ onNavigate }) {
 
     try {
       setLoading(true);
-      const data = await fetchWardrobeApi(userUid);
+      const data = await fetchWardrobeApi();
       if (data && data.length > 0) {
         const mapped = data.map(item => ({
           id: item.item_id,
@@ -102,7 +102,7 @@ export default function Wardrobe({ onNavigate }) {
 
     try {
       setDeletingId(product.id);
-      await deleteWardrobeItem(userUid, product.id);
+      await deleteWardrobeItem(product.id);
       setProductsList(prev => prev.filter(item => item.id !== product.id));
       setWishlist(prev => prev.filter(id => id !== product.id));
     } catch (e) {

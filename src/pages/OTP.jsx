@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { verifyOtp } from '../api';
+import { verifyOtp, saveAuthSession } from '../api';
 import { useAuth } from '../AuthContext';
 import AuthCard from '../components/AuthCard';
 import Button from '../components/Button';
@@ -25,10 +25,18 @@ export default function OTP({ onNavigate }) {
     setError('');
     try {
       const data = await verifyOtp(mobileNo, otp.join(''));
-      const { redirect_url, user_id } = data;
-      setUserUid(user_id);
+      saveAuthSession(data);
+      setUserUid(data.user_id || '');
       setIsLoggedIn(true);
-      onNavigate(redirect_url === '/onboarding' ? 'onboarding' : 'home');
+
+      // Backend redirects to onboarding based on show_onboarding (or legacy redirect_url)
+      let target = 'home';
+      if (typeof data.show_onboarding === 'boolean') {
+        target = data.show_onboarding ? 'onboarding' : 'home';
+      } else if (data.redirect_url === '/onboarding') {
+        target = 'onboarding';
+      }
+      onNavigate(target);
     } catch (e) {
       setError(e.message || 'OTP verification failed');
     } finally {

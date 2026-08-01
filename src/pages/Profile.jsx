@@ -9,6 +9,7 @@ export default function Profile({ onNavigate }) {
     setMobileNo('');
     setUserUid('');
     setIsLoggedIn(false);
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('currentPage');
     onNavigate('login');
   };

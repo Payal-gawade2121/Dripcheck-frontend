@@ -1,90 +1,58 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { fetchTopwearSuggestions, fetchBottomwearSuggestions, fetchFootwearSuggestions } from '../api';
 
-const bundles = [
-  {
-    id: 1,
-    score: 98,
-    explanation: 'Recommended to complement your existing wardrobe',
-    aiSlot: 'topwear',
-    items: {
-      topwear: { name: 'Italian Linen Shirt', brand: 'Zegna', image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80' },
-      bottomwear: { name: 'Japanese Selvedge Denim', brand: 'APC', image: 'https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=400&q=80' },
-      footwear: { name: 'Minimalist White Sneakers', brand: 'Common Projects', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80' },
-    },
-  },
-  {
-    id: 2,
-    score: 96,
-    explanation: 'Completes your smart-casual rotation perfectly',
-    aiSlot: 'bottomwear',
-    items: {
-      topwear: { name: 'Merino Silk Blend Tee', brand: 'Theory', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80' },
-      bottomwear: { name: 'Tailored Dress Pants', brand: 'Suitsupply', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&q=80' },
-      footwear: { name: 'Italian Leather Loafers', brand: 'Tod\'s', image: 'https://images.unsplash.com/photo-1614252235316-8c857f38b7f4?w=400&q=80' },
-    },
-  },
-  {
-    id: 3,
-    score: 94,
-    explanation: 'Elevates your weekend aesthetic instantly',
-    aiSlot: 'footwear',
-    items: {
-      topwear: { name: 'Cashmere Crew Neck', brand: 'Loro Piana', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80' },
-      bottomwear: { name: 'Cotton Chino Pants', brand: 'Bonobos', image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&q=80' },
-      footwear: { name: 'Chelsea Boots', brand: 'Blundstone', image: 'https://images.unsplash.com/photo-1638247025967-b4e38f787b76?w=400&q=80' },
-    },
-  },
-  {
-    id: 4,
-    score: 92,
-    explanation: 'Adds a refined edge to your daily rotation',
-    aiSlot: 'topwear',
-    items: {
-      topwear: { name: 'Oxford Button-Down', brand: 'Ralph Lauren', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80' },
-      bottomwear: { name: 'Wool Trousers', brand: 'Hugo Boss', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80' },
-      footwear: { name: 'Oxford Cap Toe', brand: 'Allen Edmonds', image: 'https://images.unsplash.com/photo-1614252364410-9113d542d0e6?w=400&q=80' },
-    },
-  },
-  {
-    id: 5,
-    score: 90,
-    explanation: 'The missing piece for your office wardrobe',
-    aiSlot: 'bottomwear',
-    items: {
-      topwear: { name: 'Italian Linen Shirt', brand: 'Zegna', image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80' },
-      bottomwear: { name: 'Japanese Selvedge Denim', brand: 'APC', image: 'https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=400&q=80' },
-      footwear: { name: 'Chelsea Boots', brand: 'Blundstone', image: 'https://images.unsplash.com/photo-1638247025967-b4e38f787b76?w=400&q=80' },
-    },
-  },
-  {
-    id: 6,
-    score: 87,
-    explanation: 'Sneakers that tie your whole look together',
-    aiSlot: 'footwear',
-    items: {
-      topwear: { name: 'Cashmere Crew Neck', brand: 'Loro Piana', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80' },
-      bottomwear: { name: 'Cotton Chino Pants', brand: 'Bonobos', image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&q=80' },
-      footwear: { name: 'Minimalist White Sneakers', brand: 'Common Projects', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80' },
-    },
-  },
-  {
-    id: 7,
-    score: 85,
-    explanation: 'Brings balance to your neutral-toned wardrobe',
-    aiSlot: 'topwear',
-    items: {
-      topwear: { name: 'Merino Silk Blend Tee', brand: 'Theory', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80' },
-      bottomwear: { name: 'Wool Trousers', brand: 'Hugo Boss', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80' },
-      footwear: { name: 'Italian Leather Loafers', brand: 'Tod\'s', image: 'https://images.unsplash.com/photo-1614252235316-8c857f38b7f4?w=400&q=80' },
-    },
-  },
-];
+const API_BASE = 'http://127.0.0.1:8000';
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80';
 
 const slotLabels = { topwear: 'Topwear', bottomwear: 'Bottomwear', footwear: 'Footwear' };
 
+const SUGGESTION_FETCHERS = {
+  topwear: fetchTopwearSuggestions,
+  bottomwear: fetchBottomwearSuggestions,
+  footwear: fetchFootwearSuggestions,
+};
+
+const imageOf = (item) => {
+  if (!item?.image_url) return FALLBACK_IMAGE;
+  if (item.image_url.startsWith('http')) return item.image_url;
+  return `${API_BASE}${item.image_url}`;
+};
+
 export default function AiDrip({ onNavigate }) {
+  const [selectedCategory, setSelectedCategory] = useState('topwear');
+  const [bundles, setBundles] = useState([]);
+  const [recommendedItem, setRecommendedItem] = useState(null);
   const [expandedInsight, setExpandedInsight] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [wishlisted, setWishlisted] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const data = await SUGGESTION_FETCHERS[selectedCategory]();
+        if (cancelled) return;
+        setRecommendedItem(data.recommended_item || null);
+        setBundles(data.bundles || []);
+      } catch (e) {
+        if (cancelled) return;
+        setError(e.message || 'Failed to load AI suggestions.');
+        setBundles([]);
+        setRecommendedItem(null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [selectedCategory]);
+
+  const toggleWishlist = (id) => {
+    setWishlisted(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative overflow-hidden">
@@ -103,10 +71,6 @@ export default function AiDrip({ onNavigate }) {
         @keyframes fadeSlideUp {
           from { opacity: 0; transform: translateY(16px); }
           to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes shimmer {
-          0% { background-position: -200% 0; }
-          100% { background-position: 200% 0; }
         }
         .animate-iridescent {
           background: linear-gradient(135deg, #a855f7, #ec4899, #06b6d4, #6366f1, #f59e0b, #a855f7);
@@ -128,13 +92,6 @@ export default function AiDrip({ onNavigate }) {
         .bundle-card:nth-child(5) { animation-delay: 0.25s; }
         .bundle-card:nth-child(6) { animation-delay: 0.3s; }
         .bundle-card:nth-child(7) { animation-delay: 0.35s; }
-        .muted-image {
-          filter: grayscale(0.6) saturate(0.5) brightness(1.05);
-          transition: filter 0.4s ease;
-        }
-        .muted-image:hover {
-          filter: grayscale(0.2) saturate(0.8) brightness(1.02);
-        }
       `}</style>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-32">
@@ -161,7 +118,7 @@ export default function AiDrip({ onNavigate }) {
             {Object.keys(slotLabels).map((category) => (
               <button
                 key={category}
-                onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                onClick={() => setSelectedCategory(category)}
                 className={`flex-1 text-[13px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] ${
                   selectedCategory === category
                     ? 'bg-black text-white'
@@ -174,22 +131,98 @@ export default function AiDrip({ onNavigate }) {
           </div>
         </div>
 
+        {/* Loading indicator */}
+        {loading && (
+          <div className="flex justify-center py-8">
+            <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+
+        {/* Error state */}
+        {!loading && error && (
+          <div className="px-5 mt-4">
+            <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 text-center">
+              <p className="text-xs font-semibold text-rose-600">{error}</p>
+              <button
+                onClick={() => setSelectedCategory(c => c)}
+                className="mt-3 text-[11px] font-bold text-white bg-black px-4 py-2 rounded-full"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && bundles.length === 0 && (
+          <div className="px-5 mt-4">
+            <div className="bg-white rounded-2xl p-6 text-center border border-gray-100">
+              <p className="text-sm font-semibold text-gray-700">No AI suggestions available</p>
+              <p className="text-xs text-gray-400 mt-1">Add matching pieces to your wardrobe to get outfit bundles.</p>
+            </div>
+          </div>
+        )}
+
+        {/* AI Top Pick hero */}
+        {!loading && recommendedItem && (
+          <div className="px-5 mt-5">
+            <div className="bundle-card bg-white rounded-2xl p-4 border border-indigo-100/70 shadow-[0_4px_15px_rgba(0,0,0,0.05)] opacity-0 animate-fade-slide-up">
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-28 rounded-2xl shrink-0 animate-iridescent animate-glow-pulse">
+                  <div className="w-full h-full rounded-[14px] overflow-hidden bg-white">
+                    <img src={imageOf(recommendedItem)} alt={recommendedItem.name} className="w-full h-full object-cover" />
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-1">AI Top Pick</p>
+                  <h3 className="text-[15px] font-bold text-gray-900 truncate">{recommendedItem.name}</h3>
+                  <p className="text-[11px] text-gray-500 truncate">{recommendedItem.brand || 'AI Recommended'}</p>
+                  <p className="text-[11px] text-gray-400 mt-1">Best match for your wardrobe</p>
+                  {recommendedItem.product_url && (
+                    <a
+                      href={recommendedItem.product_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-block text-[11px] font-bold text-white bg-black px-3.5 py-1.5 rounded-full"
+                    >
+                      View product
+                    </a>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Bundle Cards */}
-        <div className="px-5 mt-4 space-y-6">
+        <div className="px-5 mt-5 space-y-6">
           {bundles.map((bundle) => {
-            const isExpanded = expandedInsight === bundle.id;
-            const slots = ['topwear', 'bottomwear', 'footwear'];
+            const isExpanded = expandedInsight === bundle.bundle_id;
+            const items = bundle.items || [];
+            const aiItem = items.find(i => i.is_ai || i.item_id === bundle.ai_item_id) || recommendedItem;
 
             return (
               <div
-                key={bundle.id}
+                key={bundle.bundle_id}
                 className={`bundle-card bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] overflow-hidden opacity-0 animate-fade-slide-up`}
               >
                 {/* Header */}
                 <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Unlock 5 bundles</h2>
-                  <button className="text-black hover:text-gray-600 transition-colors">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-[16px] font-bold text-gray-900 tracking-tight">AI Bundle</h2>
+                    <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                      {bundle.match_score}% match
+                    </span>
+                  </div>
+                  <button onClick={() => toggleWishlist(bundle.bundle_id)} className="text-black hover:text-gray-600 transition-colors">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill={wishlisted[bundle.bundle_id] ? 'currentColor' : 'none'}
+                      stroke="currentColor"
+                      strokeWidth={2}
+                      className="w-5 h-5"
+                      style={{ color: wishlisted[bundle.bundle_id] ? '#ef4444' : '#111111' }}
+                    >
                       <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                     </svg>
                   </button>
@@ -197,21 +230,26 @@ export default function AiDrip({ onNavigate }) {
 
                 {/* Product Tiles Row */}
                 <div className="flex gap-2">
-                  {slots.map((slot) => {
-                    const item = bundle.items[slot];
-                    const isAi = selectedCategory ? selectedCategory === slot : bundle.aiSlot === slot;
-
+                  {items.map((item, idx) => {
+                    const isAi = item && item.item_id === aiItem?.item_id;
                     return (
-                      <div key={slot} className="flex-1">
+                      <div key={item?.item_id || idx} className="flex-1 min-w-0">
                         <div className={`relative w-full aspect-[3/4] ${isAi ? 'animate-iridescent animate-glow-pulse' : 'rounded-xl overflow-hidden'}`}>
                           <div className={`w-full h-full overflow-hidden ${isAi ? 'rounded-[12px]' : 'rounded-xl'} bg-white`}>
                             <img
-                              src={item.image}
-                              alt={item.name}
+                              src={imageOf(item)}
+                              alt={item?.name || 'Item'}
                               className="w-full h-full object-cover"
                             />
                           </div>
+                          {isAi && (
+                            <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                              AI Pick
+                            </div>
+                          )}
                         </div>
+                        <p className="mt-1.5 text-[10px] font-semibold text-gray-800 truncate text-center">{item?.name || 'Item'}</p>
+                        <p className="text-[9px] text-gray-400 truncate text-center">{item?.brand || ' '}</p>
                       </div>
                     );
                   })}
@@ -219,11 +257,14 @@ export default function AiDrip({ onNavigate }) {
 
                 {/* Bundle Footer */}
                 <div className="flex items-center gap-3 mt-4">
-                  <button className="flex-[3] bg-black text-white text-[14px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98]">
+                  <button
+                    onClick={() => { if (aiItem?.product_url) window.open(aiItem.product_url, '_blank', 'noopener,noreferrer'); }}
+                    className="flex-[3] bg-black text-white text-[14px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98]"
+                  >
                     Buy suggested product
                   </button>
                   <button
-                    onClick={() => setExpandedInsight(isExpanded ? null : bundle.id)}
+                    onClick={() => setExpandedInsight(isExpanded ? null : bundle.bundle_id)}
                     className="flex-1 text-[11px] text-gray-400 font-medium leading-[1.1] text-center transition-colors hover:text-gray-600"
                   >
                     Why this<br />product?
@@ -239,17 +280,17 @@ export default function AiDrip({ onNavigate }) {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846" />
                         </svg>
                       </div>
-                      <div>
-                        <p className="text-[11px] text-gray-600 leading-relaxed">
-                          AI matched the <strong className="text-gray-900">{slotLabels[selectedCategory || bundle.aiSlot].toLowerCase()}</strong> from our catalog to complete your outfit. It was selected based on color harmony, style compatibility, and season relevance with your existing <strong className="text-gray-900">{slots.filter(s => s !== (selectedCategory || bundle.aiSlot)).map(s => slotLabels[s].toLowerCase()).join(' and ')}</strong>.
-                        </p>
-                        <div className="flex gap-1.5 mt-2.5">
-                          <span className="text-[9px] font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/50">Color harmony</span>
-                          <span className="text-[9px] font-medium text-teal-500 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100/50">Style match</span>
-                          <span className="text-[9px] font-medium text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50">Season fit</span>
-                        </div>
-                      </div>
+                      <p className="text-[11px] text-gray-600 leading-relaxed">
+                        {bundle.explanation || 'AI matched this piece to complete your outfit based on color harmony, style compatibility, and season relevance.'}
+                      </p>
                     </div>
+                    {aiItem?.style_tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2.5">
+                        {aiItem.style_tags.slice(0, 3).map(tag => (
+                          <span key={tag} className="text-[9px] font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/50">{tag}</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
