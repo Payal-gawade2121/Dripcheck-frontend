@@ -1,7 +1,7 @@
 // src/api.js
 // Centralized API helper functions for TripCheck frontend
 
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://6hkpxld2-8000.inc1.devtunnels.ms";
 
 function getAuthToken() {
   return localStorage.getItem("authToken") || "";
@@ -83,4 +83,17 @@ export function fetchBestSellingProducts() {
 }
 export function fetchBundles(user_id) {
   return getJson(`/api/bundles/${user_id}`);
+}
+
+const SUGGESTION_ENDPOINTS = {
+  topwear: "/api/ai-generation/topwear-suggestion/",
+  bottomwear: "/api/ai-generation/bottomwear-suggestion/",
+  footwear: "/api/ai-generation/footwear-suggestion/",
+};
+
+export function fetchAiSuggestion(category, user_id, options = {}) {
+  const payload = { user_id };
+  if (options.occasion) payload.occasion = options.occasion;
+  if (options.season) payload.season = options.season;
+  return postJson(SUGGESTION_ENDPOINTS[category], payload);
 }

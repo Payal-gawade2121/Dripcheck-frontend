@@ -1,5 +1,5 @@
 // src/logger.js
-const BACKEND_LOG_URL = "http://127.0.0.1:8000/api/logs";
+const BACKEND_LOG_URL = "https://6hkpxld2-8000.inc1.devtunnels.ms/api/logs";
 
 export function initFrontendLogger() {
   const sendLog = async (level, message, stack = "") => {

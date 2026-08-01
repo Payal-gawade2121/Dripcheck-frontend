@@ -1,90 +1,81 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../AuthContext';
 
-const bundles = [
-  {
-    id: 1,
-    score: 98,
-    explanation: 'Recommended to complement your existing wardrobe',
-    aiSlot: 'topwear',
-    items: {
-      topwear: { name: 'Italian Linen Shirt', brand: 'Zegna', image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80' },
-      bottomwear: { name: 'Japanese Selvedge Denim', brand: 'APC', image: 'https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=400&q=80' },
-      footwear: { name: 'Minimalist White Sneakers', brand: 'Common Projects', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80' },
-    },
-  },
-  {
-    id: 2,
-    score: 96,
-    explanation: 'Completes your smart-casual rotation perfectly',
-    aiSlot: 'bottomwear',
-    items: {
-      topwear: { name: 'Merino Silk Blend Tee', brand: 'Theory', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80' },
-      bottomwear: { name: 'Tailored Dress Pants', brand: 'Suitsupply', image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=400&q=80' },
-      footwear: { name: 'Italian Leather Loafers', brand: 'Tod\'s', image: 'https://images.unsplash.com/photo-1614252235316-8c857f38b7f4?w=400&q=80' },
-    },
-  },
-  {
-    id: 3,
-    score: 94,
-    explanation: 'Elevates your weekend aesthetic instantly',
-    aiSlot: 'footwear',
-    items: {
-      topwear: { name: 'Cashmere Crew Neck', brand: 'Loro Piana', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80' },
-      bottomwear: { name: 'Cotton Chino Pants', brand: 'Bonobos', image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&q=80' },
-      footwear: { name: 'Chelsea Boots', brand: 'Blundstone', image: 'https://images.unsplash.com/photo-1638247025967-b4e38f787b76?w=400&q=80' },
-    },
-  },
-  {
-    id: 4,
-    score: 92,
-    explanation: 'Adds a refined edge to your daily rotation',
-    aiSlot: 'topwear',
-    items: {
-      topwear: { name: 'Oxford Button-Down', brand: 'Ralph Lauren', image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400&q=80' },
-      bottomwear: { name: 'Wool Trousers', brand: 'Hugo Boss', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80' },
-      footwear: { name: 'Oxford Cap Toe', brand: 'Allen Edmonds', image: 'https://images.unsplash.com/photo-1614252364410-9113d542d0e6?w=400&q=80' },
-    },
-  },
-  {
-    id: 5,
-    score: 90,
-    explanation: 'The missing piece for your office wardrobe',
-    aiSlot: 'bottomwear',
-    items: {
-      topwear: { name: 'Italian Linen Shirt', brand: 'Zegna', image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?w=400&q=80' },
-      bottomwear: { name: 'Japanese Selvedge Denim', brand: 'APC', image: 'https://images.unsplash.com/photo-1542272454315-4c01d7abdf4a?w=400&q=80' },
-      footwear: { name: 'Chelsea Boots', brand: 'Blundstone', image: 'https://images.unsplash.com/photo-1638247025967-b4e38f787b76?w=400&q=80' },
-    },
-  },
-  {
-    id: 6,
-    score: 87,
-    explanation: 'Sneakers that tie your whole look together',
-    aiSlot: 'footwear',
-    items: {
-      topwear: { name: 'Cashmere Crew Neck', brand: 'Loro Piana', image: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=400&q=80' },
-      bottomwear: { name: 'Cotton Chino Pants', brand: 'Bonobos', image: 'https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=400&q=80' },
-      footwear: { name: 'Minimalist White Sneakers', brand: 'Common Projects', image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=400&q=80' },
-    },
-  },
-  {
-    id: 7,
-    score: 85,
-    explanation: 'Brings balance to your neutral-toned wardrobe',
-    aiSlot: 'topwear',
-    items: {
-      topwear: { name: 'Merino Silk Blend Tee', brand: 'Theory', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80' },
-      bottomwear: { name: 'Wool Trousers', brand: 'Hugo Boss', image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400&q=80' },
-      footwear: { name: 'Italian Leather Loafers', brand: 'Tod\'s', image: 'https://images.unsplash.com/photo-1614252235316-8c857f38b7f4?w=400&q=80' },
-    },
-  },
-];
+const API_BASE_URL = 'https://6hkpxld2-8000.inc1.devtunnels.ms/';
+
+const resolveImage = (url) => {
+  if (!url) return '';
+  return url.startsWith('http') ? url : `${API_BASE_URL}${url.replace(/^\//, '')}`;
+};
 
 const slotLabels = { topwear: 'Topwear', bottomwear: 'Bottomwear', footwear: 'Footwear' };
+const slotOrder = ['TOP', 'BOTTOM', 'FOOTWEAR'];
+const slotNames = { TOP: 'Topwear', BOTTOM: 'Bottomwear', FOOTWEAR: 'Footwear' };
 
 export default function AiDrip({ onNavigate }) {
+  const { userUid } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState('topwear');
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [expandedInsight, setExpandedInsight] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  const loadSuggestions = useCallback(async (category) => {
+    if (!userUid) {
+      setError('Please log in to see AI suggestions.');
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setData(null);
+    setExpandedInsight(null);
+    try {
+      const { fetchAiSuggestion } = await import('../api');
+      const result = await fetchAiSuggestion(category, userUid);
+      setData(result);
+    } catch (e) {
+      setError(e?.detail || 'Failed to load AI suggestions. Try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, [userUid]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!userUid) return;
+      setLoading(true);
+      setError(null);
+      setData(null);
+      try {
+        const { fetchAiSuggestion } = await import('../api');
+        const result = await fetchAiSuggestion('topwear', userUid);
+        if (active) setData(result);
+      } catch (e) {
+        if (active) setError(e?.detail || 'Failed to load AI suggestions. Try again.');
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [userUid]);
+
+  const handleCategorySelect = (category) => {
+    if (selectedCategory === category) {
+      setSelectedCategory(null);
+      setData(null);
+      setError(null);
+      return;
+    }
+    setSelectedCategory(category);
+    loadSuggestions(category);
+  };
+
+  const recommended = data?.recommended_item;
+  const bundles = data?.bundles || [];
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative overflow-hidden">
@@ -128,13 +119,6 @@ export default function AiDrip({ onNavigate }) {
         .bundle-card:nth-child(5) { animation-delay: 0.25s; }
         .bundle-card:nth-child(6) { animation-delay: 0.3s; }
         .bundle-card:nth-child(7) { animation-delay: 0.35s; }
-        .muted-image {
-          filter: grayscale(0.6) saturate(0.5) brightness(1.05);
-          transition: filter 0.4s ease;
-        }
-        .muted-image:hover {
-          filter: grayscale(0.2) saturate(0.8) brightness(1.02);
-        }
       `}</style>
 
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-32">
@@ -161,7 +145,8 @@ export default function AiDrip({ onNavigate }) {
             {Object.keys(slotLabels).map((category) => (
               <button
                 key={category}
-                onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                onClick={() => handleCategorySelect(category)}
+                disabled={loading}
                 className={`flex-1 text-[13px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] ${
                   selectedCategory === category
                     ? 'bg-black text-white'
@@ -174,88 +159,188 @@ export default function AiDrip({ onNavigate }) {
           </div>
         </div>
 
-        {/* Bundle Cards */}
-        <div className="px-5 mt-4 space-y-6">
-          {bundles.map((bundle) => {
-            const isExpanded = expandedInsight === bundle.id;
-            const slots = ['topwear', 'bottomwear', 'footwear'];
+        {/* Loading */}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-8 h-8 border-[3px] border-black border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[13px] text-gray-500 font-medium">Finding your perfect match...</p>
+          </div>
+        )}
 
-            return (
-              <div
-                key={bundle.id}
-                className={`bundle-card bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] overflow-hidden opacity-0 animate-fade-slide-up`}
-              >
-                {/* Header */}
-                <div className="flex justify-between items-center mb-3">
-                  <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">Unlock 5 bundles</h2>
-                  <button className="text-black hover:text-gray-600 transition-colors">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                    </svg>
-                  </button>
+        {/* Error */}
+        {error && !loading && (
+          <div className="px-5 mt-8 flex flex-col items-center gap-3">
+            <p className="text-[13px] text-gray-600 text-center">{error}</p>
+            <button
+              onClick={() => selectedCategory && loadSuggestions(selectedCategory)}
+              className="bg-black text-white text-[13px] font-bold px-6 py-2.5 rounded-full transition-all duration-200 active:scale-[0.98]"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!loading && !error && !data && (
+          <div className="px-5 mt-10 text-center">
+            <p className="text-[13px] text-gray-500">Select a category above to get AI suggestions.</p>
+          </div>
+        )}
+
+        {/* AI Top Pick */}
+        {!loading && !error && recommended && (
+          <div className="px-5 mt-4">
+            <div className="animate-iridescent animate-glow-pulse rounded-2xl">
+              <div className="bg-white rounded-[14px] p-4 flex gap-3.5 items-center">
+                <div className="w-16 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+                  <img
+                    src={resolveImage(recommended.image_url)}
+                    alt={recommended.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">AI Top Pick</p>
+                  <h3 className="text-[15px] font-bold text-gray-900 leading-snug mt-0.5 truncate">{recommended.name}</h3>
+                  <p className="text-[12px] text-gray-500 mt-0.5 truncate">
+                    {recommended.brand || slotNames[recommended.category] || selectedCategory}
+                  </p>
+                  {recommended.style_tags?.length > 0 && (
+                    <div className="flex gap-1.5 mt-2">
+                      {recommended.style_tags.slice(0, 3).map((tag) => (
+                        <span key={tag} className="text-[9px] font-medium text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
-                {/* Product Tiles Row */}
-                <div className="flex gap-2">
-                  {slots.map((slot) => {
-                    const item = bundle.items[slot];
-                    const isAi = selectedCategory ? selectedCategory === slot : bundle.aiSlot === slot;
+        {/* Bundle Cards */}
+        {!loading && !error && bundles.length > 0 && (
+          <div className="px-5 mt-4 space-y-6">
+            {bundles.map((bundle) => {
+              const isExpanded = expandedInsight === bundle.bundle_id;
+              const aiItem = bundle.items.find((i) => i.is_ai);
+              const matchPct = Math.round((bundle.match_score || 0) * 100);
 
-                    return (
-                      <div key={slot} className="flex-1">
+              return (
+                <div
+                  key={bundle.bundle_id}
+                  className={`bundle-card bg-white rounded-2xl p-4 mb-4 border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] overflow-hidden opacity-0 animate-fade-slide-up`}
+                >
+                  {/* Header */}
+                  <div className="flex justify-between items-center mb-3">
+                    <h2 className="text-[17px] font-bold text-gray-900 tracking-tight">{matchPct}% Match</h2>
+                    <button className="text-black hover:text-gray-600 transition-colors">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* Product Tiles Row */}
+                  <div className="flex gap-2">
+                    {slotOrder.map((slot) => {
+                      const item = bundle.items.find((i) => (i.category || '').toUpperCase() === slot);
+                      if (!item) {
+                        return (
+                          <div key={slot} className="flex-1">
+                            <div className="w-full aspect-[3/4] rounded-xl bg-gray-100 flex items-center justify-center">
+                              <span className="text-[10px] font-bold text-gray-400">{slotNames[slot]}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      const isAi = item.is_ai;
+                      const tile = (
                         <div className={`relative w-full aspect-[3/4] ${isAi ? 'animate-iridescent animate-glow-pulse' : 'rounded-xl overflow-hidden'}`}>
                           <div className={`w-full h-full overflow-hidden ${isAi ? 'rounded-[12px]' : 'rounded-xl'} bg-white`}>
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-full h-full object-cover"
-                            />
+                            {item.image_url ? (
+                              <img
+                                src={resolveImage(item.image_url)}
+                                alt={item.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                <span className="text-[10px] font-bold text-gray-400">{slotNames[slot]}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                      return (
+                        <div key={slot} className="flex-1">
+                          {item.product_url ? (
+                            <a href={item.product_url} target="_blank" rel="noopener noreferrer">{tile}</a>
+                          ) : (
+                            tile
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                {/* Bundle Footer */}
-                <div className="flex items-center gap-3 mt-4">
-                  <button className="flex-[3] bg-black text-white text-[14px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98]">
-                    Buy suggested product
-                  </button>
-                  <button
-                    onClick={() => setExpandedInsight(isExpanded ? null : bundle.id)}
-                    className="flex-1 text-[11px] text-gray-400 font-medium leading-[1.1] text-center transition-colors hover:text-gray-600"
-                  >
-                    Why this<br />product?
-                  </button>
-                </div>
+                  {/* Bundle Footer */}
+                  <div className="flex items-center gap-3 mt-4">
+                    {aiItem?.product_url ? (
+                      <a
+                        href={aiItem.product_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-[3] bg-black text-white text-[14px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] text-center"
+                      >
+                        Buy suggested product
+                      </a>
+                    ) : (
+                      <button className="flex-[3] bg-black text-white text-[14px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98]">
+                        Buy suggested product
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setExpandedInsight(isExpanded ? null : bundle.bundle_id)}
+                      className="flex-1 text-[11px] text-gray-400 font-medium leading-[1.1] text-center transition-colors hover:text-gray-600"
+                    >
+                      Why this<br />product?
+                    </button>
+                  </div>
 
-                {/* Expanded Insight */}
-                {isExpanded && (
-                  <div className="mt-4 pt-4 border-t border-gray-50 animate-fade-slide-up">
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3.5 h-3.5 text-indigo-500">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-[11px] text-gray-600 leading-relaxed">
-                          AI matched the <strong className="text-gray-900">{slotLabels[selectedCategory || bundle.aiSlot].toLowerCase()}</strong> from our catalog to complete your outfit. It was selected based on color harmony, style compatibility, and season relevance with your existing <strong className="text-gray-900">{slots.filter(s => s !== (selectedCategory || bundle.aiSlot)).map(s => slotLabels[s].toLowerCase()).join(' and ')}</strong>.
-                        </p>
-                        <div className="flex gap-1.5 mt-2.5">
-                          <span className="text-[9px] font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/50">Color harmony</span>
-                          <span className="text-[9px] font-medium text-teal-500 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100/50">Style match</span>
-                          <span className="text-[9px] font-medium text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100/50">Season fit</span>
+                  {/* Expanded Insight */}
+                  {isExpanded && (
+                    <div className="mt-4 pt-4 border-t border-gray-50 animate-fade-slide-up">
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center shrink-0 mt-0.5">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="w-3.5 h-3.5 text-indigo-500">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-[11px] text-gray-600 leading-relaxed">
+                            {bundle.explanation || 'AI matched this product to complete your outfit based on color harmony, style compatibility, and season relevance.'}
+                          </p>
+                          {aiItem?.style_tags?.length > 0 && (
+                            <div className="flex gap-1.5 mt-2.5">
+                              {aiItem.style_tags.slice(0, 3).map((tag) => (
+                                <span key={tag} className="text-[9px] font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100/50">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Bottom Spacer */}
         <div className="h-6" />
