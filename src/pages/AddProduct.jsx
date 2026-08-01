@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import { useAuth } from '../AuthContext';
+import { addProductLink, uploadProduct, generateAvatar, approveProduct } from '../api';
 
 const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
@@ -143,16 +144,8 @@ export default function AddProduct({ onNavigate }) {
     setStep('loading');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/wardrobe/add-product-link`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: productLink.trim(),
-          user_id: currentUserId,
-        }),
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
+      const data = await addProductLink(productLink.trim());
+      if (data.success) {
         const addedCat = data.product?.category || 'Top Wear';
         setAddedCategory(addedCat);
         setShowSuccessPopup(true);
@@ -166,7 +159,7 @@ export default function AddProduct({ onNavigate }) {
       }
     } catch (e) {
       console.error(e);
-      setErrorMsg('Network error. Failed to connect to server.');
+      setErrorMsg(e.message || 'Network error. Failed to connect to server.');
       setStep('form');
     }
   };
@@ -184,15 +177,10 @@ export default function AddProduct({ onNavigate }) {
     formData.append('color', color);
     formData.append('type', typeStr);
     formData.append('category', category);
-    formData.append('user_id', currentUserId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/wardrobe/upload-product`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
+      const data = await uploadProduct(formData);
+      if (data.success) {
         setUploadResult(data);
         setEditedProduct({
           name: data.product.name,
@@ -208,7 +196,7 @@ export default function AddProduct({ onNavigate }) {
       }
     } catch (e) {
       console.error(e);
-      setErrorMsg('Network error. Failed to connect to server.');
+      setErrorMsg(e.message || 'Network error. Failed to connect to server.');
       setStep('form');
     }
   };
@@ -226,15 +214,10 @@ export default function AddProduct({ onNavigate }) {
     formData.append('color', color);
     formData.append('type', typeStr);
     formData.append('category', category);
-    formData.append('user_id', currentUserId);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/wardrobe/generate-avatar`, {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
+      const data = await generateAvatar(formData);
+      if (data.success) {
         setAvatarResult(data);
         setStep('avatar');
       } else {
@@ -243,7 +226,7 @@ export default function AddProduct({ onNavigate }) {
       }
     } catch (e) {
       console.error(e);
-      setErrorMsg('Network error. Failed to connect to server.');
+      setErrorMsg(e.message || 'Network error. Failed to connect to server.');
       setStep('form');
     }
   };
@@ -256,20 +239,14 @@ export default function AddProduct({ onNavigate }) {
     setLoadingText(approved ? 'Saving to wardrobe...' : 'Cleaning up...');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/wardrobe/approve-product`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          approved,
-          temp_orig_name: uploadResult.temp_orig_name,
-          temp_gen_name: uploadResult.temp_gen_name,
-          fallback_used: uploadResult.fallback_used,
-          user_id: currentUserId,
-          product: editedProduct,
-        }),
+      const data = await approveProduct({
+        approved,
+        temp_orig_name: uploadResult.temp_orig_name,
+        temp_gen_name: uploadResult.temp_gen_name,
+        fallback_used: uploadResult.fallback_used,
+        product: editedProduct,
       });
-      const data = await response.json();
-      if (response.ok && data.success) {
+      if (data.success) {
         if (approved) {
            const addedCat = editedProduct.category;
            setAddedCategory(addedCat);
@@ -287,7 +264,7 @@ export default function AddProduct({ onNavigate }) {
       }
     } catch (e) {
       console.error(e);
-      alert('Network error. Failed to save product.');
+      alert(e.message || 'Network error. Failed to save product.');
       setStep('preview');
     }
   };

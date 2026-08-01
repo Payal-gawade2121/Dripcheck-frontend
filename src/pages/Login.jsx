@@ -4,7 +4,7 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 import SocialLogins from '../components/SocialLogins';
 import Select from '../components/Select';
-import { login } from '../api';
+import { login, saveAuthSession } from '../api';
 import { useAuth } from '../AuthContext';
 
 export default function Login({ onNavigate }) {
@@ -31,16 +31,19 @@ export default function Login({ onNavigate }) {
     setError('');
     try {
       const data = await login(fullNumber);
-      const { redirect_url, onboarding_data, user_id } = data;
-      
-      setAuthToken(''); 
-      setUserUid(user_id);
+      saveAuthSession(data);
+      setAuthToken(data.access_token || '');
+      setUserUid(data.user_id || '');
       setIsLoggedIn(true);
-      
-      // Optionally store or log onboarding_data if needed
-      console.log("User onboarding data:", onboarding_data);
 
-      onNavigate(redirect_url === '/onboarding' ? 'onboarding' : 'home');
+      // Backend redirects to onboarding based on show_onboarding (or legacy redirect_url)
+      let target = 'home';
+      if (typeof data.show_onboarding === 'boolean') {
+        target = data.show_onboarding ? 'onboarding' : 'home';
+      } else if (data.redirect_url === '/onboarding') {
+        target = 'onboarding';
+      }
+      onNavigate(target);
     } catch (e) {
       setError(e.message || 'Login failed');
     } finally {

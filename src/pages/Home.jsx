@@ -14,8 +14,8 @@ export default function Home({ onNavigate }) {
         if (!userUid) return;
         const { fetchWardrobe, fetchBundles } = await import('../api');
         const [wardrobeData, bundleData] = await Promise.all([
-          fetchWardrobe(userUid),
-          fetchBundles(userUid)
+          fetchWardrobe(),
+          fetchBundles()
         ]);
 
         if (bundleData && bundleData.length > 0 && wardrobeData) {

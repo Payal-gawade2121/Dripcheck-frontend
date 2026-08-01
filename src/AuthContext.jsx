@@ -12,18 +12,18 @@ const AuthContext = createContext({
 });
 
 export const AuthProvider = ({ children }) => {
-  const [authToken, setAuthToken] = useState(localStorage.getItem('authToken') || '');
+  const [authToken, setAuthToken] = useState(localStorage.getItem('access_token') || '');
   const [mobileNo, setMobileNo] = useState(localStorage.getItem('mobileNo') || '');
-  const [userUid, setUserUid] = useState(localStorage.getItem('userUid') || '');
+  const [userUid, setUserUid] = useState(localStorage.getItem('user_id') || '');
   const [isLoggedIn, setIsLoggedIn] = useState(localStorage.getItem('isLoggedIn') === 'true');
 
   useEffect(() => {
-    if (authToken) localStorage.setItem('authToken', authToken);
-    else localStorage.removeItem('authToken');
+    if (authToken) localStorage.setItem('access_token', authToken);
+    else localStorage.removeItem('access_token');
     if (mobileNo) localStorage.setItem('mobileNo', mobileNo);
     else localStorage.removeItem('mobileNo');
-    if (userUid) localStorage.setItem('userUid', userUid);
-    else localStorage.removeItem('userUid');
+    if (userUid) localStorage.setItem('user_id', userUid);
+    else localStorage.removeItem('user_id');
     if (isLoggedIn) localStorage.setItem('isLoggedIn', 'true');
     else localStorage.removeItem('isLoggedIn');
   }, [authToken, mobileNo, userUid, isLoggedIn]);
