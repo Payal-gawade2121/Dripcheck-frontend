@@ -16,9 +16,8 @@ export default function Profile({ onNavigate }) {
 
   const menuItems = [
     { icon: 'user', label: 'Edit Profile' },
-    { icon: 'sliders', label: 'Edit Preferences' },
+    { icon: 'sliders', label: 'Edit Preferences', action: 'edit-preferences' },
     { icon: 'heart', label: 'Wishlist' },
-    { icon: 'settings', label: 'Settings' },
     { icon: 'help', label: 'Help & Support' },
   ];
 
@@ -85,6 +84,7 @@ export default function Profile({ onNavigate }) {
             {menuItems.map((item, index) => (
               <button 
                 key={index}
+                onClick={() => item.action && onNavigate(item.action)}
                 className={`w-full flex items-center justify-between p-4 px-5 hover:bg-gray-50 transition-colors active:bg-gray-100 ${
                   index !== menuItems.length - 1 ? 'border-b border-gray-50' : ''
                 }`}
