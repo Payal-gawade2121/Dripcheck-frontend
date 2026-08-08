@@ -137,6 +137,14 @@ export function submitOnboarding(responses, full_name, email, mobile_no) {
   });
 }
 
+// Profile preferences (for the Edit Preferences screen)
+export function fetchPreferences() {
+  return getJson("/auth/onboarding/preferences/");
+}
+export function updatePreferences(responses) {
+  return postJson("/auth/onboarding/preferences/", { responses });
+}
+
 // Wardrobe
 export function fetchWardrobe() {
   return getJson('/api/wardrobe/');
