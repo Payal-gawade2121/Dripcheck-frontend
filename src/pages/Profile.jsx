@@ -17,7 +17,7 @@ export default function Profile({ onNavigate }) {
   const menuItems = [
     { icon: 'user', label: 'Edit Profile' },
     { icon: 'sliders', label: 'Edit Preferences', action: 'edit-preferences' },
-    { icon: 'heart', label: 'Wishlist' },
+    { icon: 'heart', label: 'Wishlist', action: 'wishlist' },
     { icon: 'help', label: 'Help & Support' },
   ];
 

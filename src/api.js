@@ -118,6 +118,10 @@ export async function deleteJson(path) {
   return request(path, { method: "DELETE", isJson: false });
 }
 
+export async function deleteJsonBody(path, data) {
+  return request(path, { method: "DELETE", data, isJson: true });
+}
+
 // Auth specific helpers
 export function signup(mobile_no) {
   return postJson("/auth/signup/", { mobile_no });
@@ -171,6 +175,17 @@ export function fetchBestSellingProducts() {
 }
 export function fetchBundles() {
   return getJson('/api/bundles/');
+}
+
+// Wishlist
+export function fetchWishlist() {
+  return getJson("/api/wishlist/");
+}
+export function addWishlistItem(payload) {
+  return postJson("/api/wishlist/", payload);
+}
+export function removeWishlistItem(payload) {
+  return deleteJsonBody("/api/wishlist/", payload);
 }
 
 // AI generation suggestions

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { deleteWardrobeItem, fetchWardrobe as fetchWardrobeApi } from '../api';
+import { deleteWardrobeItem, fetchWardrobe as fetchWardrobeApi, fetchWishlist, addWishlistItem, removeWishlistItem } from '../api';
 import { useAuth } from '../AuthContext';
 
 const categories = ['Top Wear', 'Bottom Wear', 'Foot Wear'];
@@ -89,10 +89,44 @@ export default function Wardrobe({ onNavigate }) {
     fetchWardrobe();
   }, [userUid]);
 
-  const toggleWishlist = (id) => {
+  useEffect(() => {
+    const loadWishlist = async () => {
+      if (!userUid) return;
+      try {
+        const data = await fetchWishlist();
+        if (Array.isArray(data)) {
+          setWishlist(
+            data.filter(i => i.item_type === 'wardrobe_item')
+                .map(i => i.wardrobe_item?.item_id)
+                .filter(Boolean)
+          );
+        }
+      } catch (e) {
+        console.error('Failed to fetch wishlist:', e);
+      }
+    };
+    loadWishlist();
+  }, [userUid]);
+
+  const toggleWishlist = async (id) => {
+    const wasWishlisted = wishlist.includes(id);
     setWishlist(prev =>
-      prev.includes(id) ? prev.filter(w => w !== id) : [...prev, id]
+      wasWishlisted ? prev.filter(w => w !== id) : [...prev, id]
     );
+
+    try {
+      const payload = { item_type: 'wardrobe_item', wardrobe_item_id: id };
+      if (wasWishlisted) {
+        await removeWishlistItem(payload);
+      } else {
+        await addWishlistItem(payload);
+      }
+    } catch (e) {
+      console.error('Failed to update wishlist:', e);
+      setWishlist(prev =>
+        wasWishlisted ? [...prev, id] : prev.filter(w => w !== id)
+      );
+    }
   };
 
   const handleDeleteItem = async (product) => {
