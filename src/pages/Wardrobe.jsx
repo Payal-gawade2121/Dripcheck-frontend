@@ -32,6 +32,15 @@ const badgeColors = {
   'Fallback': 'bg-amber-600',
 };
 
+function DetailRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3">
+      <span className="text-xs font-semibold text-gray-500">{label}</span>
+      <span className="text-xs font-bold text-gray-900 text-right max-w-[60%]">{value || '—'}</span>
+    </div>
+  );
+}
+
 export default function Wardrobe({ onNavigate }) {
   const [productsList, setProductsList] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(() => {
@@ -47,6 +56,7 @@ export default function Wardrobe({ onNavigate }) {
   const [deletingId, setDeletingId] = useState(null);
   const [filter, setFilter] = useState('All');
   const [showFilter, setShowFilter] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const { userUid } = useAuth();
 
   const fetchWardrobe = async () => {
@@ -72,6 +82,15 @@ export default function Wardrobe({ onNavigate }) {
             ? `http://localhost:8000${item.image_url}`
             : 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&q=80',
           product_url: item.product_url,
+          color: item.primary_color || item.color || '—',
+          occasion: Array.isArray(item.occasion_type)
+            ? item.occasion_type.filter(Boolean)
+            : (item.occasion_type ? [item.occasion_type] : []),
+          season: item.season || '—',
+          subcategory: item.subcategory || '—',
+          fit: item.fit || '—',
+          material: item.material || '—',
+          brand: item.brand || '—',
         }));
         setProductsList(mapped);
       } else {
@@ -342,6 +361,16 @@ export default function Wardrobe({ onNavigate }) {
                     <div className="flex items-center justify-between">
                       <p className="font-bold text-black text-sm">{product.price}</p>
                     </div>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedProduct(product); }}
+                      className="mt-2.5 w-full py-2 rounded-xl bg-gray-900 text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all active:scale-95 hover:bg-black"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      View Details
+                    </button>
                   </div>
                 </div>
               ))}
@@ -382,6 +411,85 @@ export default function Wardrobe({ onNavigate }) {
           <span className="text-[10px] font-bold">Profile</span>
         </button>
       </div>
+
+      {/* Product Details Bottom Sheet */}
+      {selectedProduct && (
+        <>
+          <div
+            className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedProduct(null)}
+          />
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 w-full sm:max-w-[400px] bg-white rounded-t-3xl overflow-hidden shadow-2xl flex flex-col" style={{ height: '85%' }}>
+            {/* Handle */}
+            <div className="pt-3 pb-1 flex justify-center">
+              <div className="w-10 h-1.5 bg-gray-200 rounded-full" />
+            </div>
+
+            <div className="overflow-y-auto scrollbar-hide pb-8">
+              {/* Product Image */}
+              <div className="relative px-4">
+                <div className="relative w-full aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden">
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
+                  {selectedProduct.badge && (
+                    <div className={`absolute top-3 left-3 ${badgeColors[selectedProduct.badge]} text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide`}>
+                      {selectedProduct.badge}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setSelectedProduct(null)}
+                  className="absolute top-3 right-1 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
+                  title="Close"
+                >
+                  <svg className="w-4 h-4 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Name + Brand */}
+              <div className="px-6 mt-4">
+                <h2 className="text-lg font-bold text-gray-900">{selectedProduct.name}</h2>
+                <p className="text-sm text-gray-500 mt-0.5">{selectedProduct.brand}</p>
+              </div>
+
+              {/* Details */}
+              <div className="px-6 mt-5">
+                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Product Details</p>
+                <div className="bg-gray-50 rounded-2xl border border-gray-100 divide-y divide-gray-100">
+                  <DetailRow label="Color" value={selectedProduct.color} />
+                  <DetailRow
+                    label="Occasion"
+                    value={selectedProduct.occasion && selectedProduct.occasion.length
+                      ? selectedProduct.occasion.join(', ')
+                      : '—'}
+                  />
+                  <DetailRow label="Seasonality" value={selectedProduct.season} />
+                  <DetailRow label="Subcategory" value={selectedProduct.subcategory} />
+                  <DetailRow label="Fit" value={selectedProduct.fit} />
+                  <DetailRow label="Material" value={selectedProduct.material} />
+                  <DetailRow label="Brand" value={selectedProduct.brand} />
+                </div>
+              </div>
+
+              {/* Product Link */}
+              {selectedProduct.product_url && (
+                <div className="px-6 mt-5">
+                  <button
+                    onClick={() => window.open(selectedProduct.product_url, '_blank', 'noopener,noreferrer')}
+                    className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-black hover:bg-gray-900 text-white transition-all active:scale-95"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    Open Product Link
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
     </div>
   );

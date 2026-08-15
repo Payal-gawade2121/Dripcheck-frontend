@@ -128,7 +128,16 @@ export default function Wishlist({ onNavigate }) {
     const mb = entry.marketplace_bundle;
     const ob = entry.bundle;
     const ai = entry.item_type === 'ai_bundle' ? entry.bundle_data || {} : null;
+
+    // Gather every item across the bundle so we can render the full outfit.
+    const obItems = ob?.items_data || [];
+    const mbItems = mb?.items || [];
     const aiItems = ai?.items || [];
+    const allItems = [...obItems, ...mbItems, ...aiItems];
+    const top = allItems.find(i => i.category === 'Top');
+    const bottom = allItems.find(i => i.category === 'Bottom');
+    const footwear = allItems.find(i => i.category === 'Footwear');
+
     const title = ai
       ? 'AI Bundle'
       : mb?.title || (ob?.occasion_tags?.[0] ? `${ob.occasion_tags[0]} Look` : 'Outfit Bundle');
@@ -137,36 +146,36 @@ export default function Wishlist({ onNavigate }) {
       : mb
         ? mb.description || 'Marketplace bundle'
         : ob
-          ? `${ob.items?.length || 0} items · ${Math.round(ob.compatibility_score || 0)}% match`
+          ? `${allItems.length} items · ${Math.round(ob.compatibility_score || 0)}% match`
           : 'Bundle';
     const price = ai ? null : mb?.total_price;
-    const image = ai
-      ? resolveImage(aiItems[0]?.image_url)
-      : mb
-        ? resolveImage(mb?.items?.[0]?.image_url)
-        : null;
     const tags = ai
       ? []
       : (entry.item_type === 'marketplace_bundle' ? mb?.style_tags : ob?.style_tags) || [];
 
+    const renderBundlePanel = (label, item) => (
+      <div
+        key={label}
+        className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-2 border-r last:border-r-0 border-white/20 bg-cover bg-center"
+        style={item?.image_url ? { backgroundImage: `url(${resolveImage(item.image_url)})` } : {}}
+      >
+        <div className="flex-1 flex items-center justify-center">
+          {!item?.image_url && <span className="font-bold text-black text-[11px]">{label}</span>}
+        </div>
+        <span className="bg-white/90 backdrop-blur-sm rounded-md px-1.5 py-0.5 text-[9px] font-bold text-black w-max self-start shadow-sm">
+          {label}
+        </span>
+      </div>
+    );
+
     return (
       <>
-        <div className="relative w-full aspect-[4/5] bg-gray-50 overflow-hidden">
-          {image ? (
-            <img src={image} alt={title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-              <div className="flex -space-x-3">
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center">
-                    <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z" />
-                    </svg>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="relative w-full h-[150px] bg-gray-50 overflow-hidden">
+          <div className="w-full h-full flex bg-gray-300">
+            {renderBundlePanel('Top', top)}
+            {renderBundlePanel('Bottom', bottom)}
+            {renderBundlePanel('Footwear', footwear)}
+          </div>
           <span className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide">
             Bundle
           </span>
