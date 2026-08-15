@@ -37,7 +37,9 @@ export default function Home({ onNavigate }) {
 
     try {
       const { addWishlistItem, removeWishlistItem } = await import('../api');
-      const payload = { item_type: 'bundle', bundle_id: id };
+      // Send the raw bundle so the backend can persist generated (homepage)
+      // bundles that don't exist in the database yet.
+      const payload = { item_type: 'bundle', bundle_id: id, bundle_data: bundle.raw };
       if (wasWishlisted) {
         await removeWishlistItem(payload);
       } else {
@@ -83,7 +85,8 @@ export default function Home({ onNavigate }) {
               bottom,
               footwear,
               tags: bundle.occasion_tags && bundle.occasion_tags.length > 0 ? bundle.occasion_tags.map(t => `#${t.replace(/\s+/g, '')}`) : ['#MyWardrobe'],
-              match: bundle.compatibility_score ? Math.round(bundle.compatibility_score) : (90 + Math.floor(Math.random() * 10))
+              match: bundle.compatibility_score ? Math.round(bundle.compatibility_score) : (90 + Math.floor(Math.random() * 10)),
+              raw: bundle,
             };
           });
           setBundles(newBundles);
