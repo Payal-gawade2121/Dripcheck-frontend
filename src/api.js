@@ -173,8 +173,12 @@ export function generateAvatar(formData) {
 export function fetchBestSellingProducts() {
   return getJson("/api/marketplace");
 }
-export function fetchBundles() {
-  return getJson('/api/bundles/');
+export function fetchBundles(occasion) {
+  const query = occasion ? `?occasion=${encodeURIComponent(occasion)}` : '';
+  return getJson(`/api/bundles/${query}`);
+}
+export function fetchBundlesFromItem(itemId) {
+  return postJson('/api/bundle-generate/recommend-from-wardrobe/', { item_id: itemId });
 }
 
 // Wishlist

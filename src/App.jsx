@@ -11,8 +11,9 @@ import EditPreferences from './pages/EditPreferences';
 import Wardrobe from './pages/Wardrobe';
 import AiDrip from './pages/AiDrip';
 import Wishlist from './pages/Wishlist';
+import MunderTesting from './pages/MunderTesting';
 
-const loggedInPages = new Set(['home', 'onboarding', 'add-product', 'profile', 'edit-preferences', 'wardrobe', 'ai-drip', 'wishlist']);
+const loggedInPages = new Set(['home', 'onboarding', 'add-product', 'profile', 'edit-preferences', 'wardrobe', 'ai-drip', 'wishlist', 'munder-testing']);
 
 function getInitialPage() {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -58,6 +59,8 @@ function App() {
         return <AiDrip onNavigate={navigate} />;
       case 'wishlist':
         return <Wishlist onNavigate={navigate} />;
+      case 'munder-testing':
+        return <MunderTesting onNavigate={navigate} />;
       default:
         return <Signup onNavigate={navigate} />;
     }

@@ -1,12 +1,75 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
+import BundleScoreDebug from '../components/BundleScoreDebug';
+
+const OCCASION_FILTERS = [
+  'All',
+  'Formal',
+  'Smart Casual',
+  'Casual',
+  'Party',
+  'Wedding',
+  'Streetwear',
+  'Sports',
+  'Travel',
+  'Date',
+];
 
 export default function Home({ onNavigate }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [bundles, setBundles] = useState([]);
+  const [defaultBundles, setDefaultBundles] = useState([]);
+  const [occasionBundles, setOccasionBundles] = useState(null);
+  const [occasionLoading, setOccasionLoading] = useState(false);
+  const [bundleError, setBundleError] = useState('');
+  const [wardrobeItems, setWardrobeItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [itemBundlesLoading, setItemBundlesLoading] = useState(false);
   const [wishlistedBundles, setWishlistedBundles] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userUid } = useAuth();
+
+  const mapBundle = (bundle, wardrobeMap) => {
+    const items = (bundle.items || []).map(id => wardrobeMap[id]).filter(Boolean);
+    const top = items.find(i => i.category === 'Top');
+    const bottom = items.find(i => i.category === 'Bottom');
+    const footwear = items.find(i => i.category === 'Footwear');
+
+    return {
+      id: bundle.bundle_id,
+      title: (top ? top.name : 'Curated') + ' & More',
+      price: 'Personal Wardrobe',
+      description: bundle.style_tags ? bundle.style_tags.join(' • ') : 'A curated outfit based on items from your wardrobe.',
+      top,
+      bottom,
+      footwear,
+      tags: bundle.occasion_tags && bundle.occasion_tags.length > 0 ? bundle.occasion_tags.map(t => `#${t.replace(/\s+/g, '')}`) : ['#MyWardrobe'],
+      match: bundle.compatibility_score ? Math.round(bundle.compatibility_score) : (90 + Math.floor(Math.random() * 10)),
+      raw: bundle,
+    };
+  };
+
+  const resolveImage = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `http://localhost:8000${url}`;
+  };
+
+  const itemMatches = (item, q) => {
+    const haystack = [
+      item.name,
+      item.category,
+      item.subcategory,
+      item.primary_color,
+      item.color_family,
+      item.color,
+      item.brand,
+      ...(Array.isArray(item.style_tags) ? item.style_tags : []),
+    ].filter(Boolean).join(' ').toLowerCase();
+    return haystack.includes(q);
+  };
 
   useEffect(() => {
     const loadWishlist = async () => {
@@ -57,6 +120,9 @@ export default function Home({ onNavigate }) {
     const loadBundles = async () => {
       try {
         setLoading(true);
+        setSelectedCategory('All');
+        setOccasionBundles(null);
+        setBundleError('');
         if (!userUid) return;
         const { fetchWardrobe, fetchBundles } = await import('../api');
         const [wardrobeData, bundleData] = await Promise.all([
@@ -70,27 +136,13 @@ export default function Home({ onNavigate }) {
             wardrobeMap[item.item_id] = item;
           });
 
-          const newBundles = bundleData.map(bundle => {
-            const items = (bundle.items || []).map(id => wardrobeMap[id]).filter(Boolean);
-            const top = items.find(i => i.category === 'Top');
-            const bottom = items.find(i => i.category === 'Bottom');
-            const footwear = items.find(i => i.category === 'Footwear');
-
-            return {
-              id: bundle.bundle_id,
-              // title: (top ? top.name : 'Curated') + ' & More',
-              // price: 'Personal Wardrobe',
-              description: bundle.style_tags ? bundle.style_tags.join(' • ') : 'A curated outfit based on items from your wardrobe.',
-              top,
-              bottom,
-              footwear,
-              tags: bundle.occasion_tags && bundle.occasion_tags.length > 0 ? bundle.occasion_tags.map(t => `#${t.replace(/\s+/g, '')}`) : ['#MyWardrobe'],
-              match: bundle.compatibility_score ? Math.round(bundle.compatibility_score) : (90 + Math.floor(Math.random() * 10)),
-              raw: bundle,
-            };
-          });
+          const newBundles = bundleData.map(bundle => mapBundle(bundle, wardrobeMap));
+          setWardrobeItems(wardrobeData);
+          setDefaultBundles(newBundles);
           setBundles(newBundles);
         } else {
+          setWardrobeItems(Array.isArray(wardrobeData) ? wardrobeData : []);
+          setDefaultBundles([]);
           setBundles([]);
         }
       } catch (e) {
@@ -101,6 +153,73 @@ export default function Home({ onNavigate }) {
     };
     loadBundles();
   }, [userUid]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery.trim()), 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const searchResults = wardrobeItems.filter(item =>
+    itemMatches(item, debouncedQuery.toLowerCase())
+  );
+  const showSearchResults = debouncedQuery.length >= 2 && !selectedItem;
+
+  const handleSelectItem = async (item) => {
+    setSelectedItem(item);
+    setSearchQuery('');
+    setDebouncedQuery('');
+    setItemBundlesLoading(true);
+    try {
+      const { fetchBundlesFromItem } = await import('../api');
+      const data = await fetchBundlesFromItem(item.item_id);
+      const wardrobeMap = {};
+      wardrobeItems.forEach(w => { wardrobeMap[w.item_id] = w; });
+      const newBundles = (Array.isArray(data) ? data : []).map(bundle => mapBundle(bundle, wardrobeMap));
+      setBundles(newBundles);
+    } catch (e) {
+      console.error('Failed to load bundles for selected item:', e);
+      setBundles(defaultBundles);
+    } finally {
+      setItemBundlesLoading(false);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedItem(null);
+    setBundles(selectedCategory === 'All' || !occasionBundles ? defaultBundles : occasionBundles);
+  };
+
+  const loadOccasionBundles = async (occasion) => {
+    setOccasionLoading(true);
+    setBundleError('');
+    try {
+      const { fetchBundles } = await import('../api');
+      const data = await fetchBundles(occasion);
+      const wardrobeMap = {};
+      wardrobeItems.forEach(w => { wardrobeMap[w.item_id] = w; });
+      const newBundles = (Array.isArray(data) ? data : []).map(bundle => mapBundle(bundle, wardrobeMap));
+      setOccasionBundles(newBundles);
+      setBundles(newBundles);
+    } catch (e) {
+      console.error('Failed to load occasion bundles:', e);
+      setBundleError(occasion);
+    } finally {
+      setOccasionLoading(false);
+    }
+  };
+
+  const handleCategorySelect = (cat) => {
+    if (cat === selectedCategory) return;
+    setSelectedCategory(cat);
+    setSelectedItem(null);
+    setBundleError('');
+    if (cat === 'All') {
+      setOccasionBundles(null);
+      setBundles(defaultBundles);
+    } else {
+      loadOccasionBundles(cat);
+    }
+  };
 
   return (
     <div className="w-full h-full flex flex-col bg-white relative overflow-hidden">
@@ -128,19 +247,52 @@ export default function Home({ onNavigate }) {
             </span>
             <input
               type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search styles, themes, or items..."
               className="w-full bg-white border border-gray-200 text-sm rounded-2xl py-3 pl-11 pr-4 focus:outline-none focus:border-gray-300 transition-colors shadow-sm"
             />
+            {showSearchResults && (
+              <div className="absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl border border-gray-100 shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden z-20">
+                {searchResults.length === 0 ? (
+                  <p className="px-4 py-3 text-sm text-gray-500">
+                    No wardrobe items match "{debouncedQuery}"
+                  </p>
+                ) : (
+                  searchResults.map(item => (
+                    <button
+                      key={item.item_id}
+                      onClick={() => handleSelectItem(item)}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors text-left"
+                    >
+                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center shrink-0">
+                        {resolveImage(item.image_url) ? (
+                          <img src={resolveImage(item.image_url)} alt={item.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] font-bold text-gray-400">{item.category || 'Item'}</span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {[item.category, item.subcategory, item.primary_color, item.brand].filter(Boolean).join(' • ')}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Quick Search Categories */}
+        {/* Occasion Filters */}
         <div className="pl-6 mb-8 overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 min-w-max pr-6">
-            {['All', 'Minimalist', 'Streetwear', 'Sporty/Athleisure'].map(cat => (
+            {OCCASION_FILTERS.map(cat => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => handleCategorySelect(cat)}
                 className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all border ${selectedCategory === cat
                   ? 'bg-[#0a0f1c] text-white border-[#0a0f1c]'
                   : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
@@ -156,14 +308,60 @@ export default function Home({ onNavigate }) {
 
         {/* Personalized for You (Bundle UI) */}
         <div className="px-6 mt-8 mb-8">
-          <h2 className="text-[19px] font-bold text-gray-900 mb-5">Best Bundles from Wardrobe</h2>
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="text-[19px] font-bold text-gray-900">
+              {selectedItem ? `Best Bundles from ${selectedItem.name}` : 'Best Bundles from Wardrobe'}
+            </h2>
+            {selectedItem && (
+              <button
+                onClick={handleClearSelection}
+                className="text-xs font-semibold text-gray-500 bg-white border border-gray-200 hover:border-gray-300 hover:text-gray-800 rounded-full px-3 py-1.5 transition-colors shadow-sm"
+              >
+                Clear
+              </button>
+            )}
+          </div>
 
-          {loading ? (
+          {bundleError && (
+            <div className="mb-5 flex items-center justify-between gap-3 bg-red-50 border border-red-100 rounded-2xl px-4 py-3">
+              <p className="text-xs font-semibold text-red-600">
+                Couldn't load {bundleError} bundles right now.
+              </p>
+              <button
+                onClick={() => loadOccasionBundles(bundleError)}
+                className="text-xs font-bold text-red-700 bg-white border border-red-200 rounded-full px-3 py-1.5 transition-colors shrink-0"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {loading || itemBundlesLoading || occasionLoading ? (
             <div className="flex justify-center py-4">
               <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : bundles.length === 0 ? (
-            <p className="text-sm text-gray-500">Not enough items in your wardrobe to create a bundle. Add a Top, Bottom, and Footwear!</p>
+            selectedItem ? (
+              <p className="text-sm text-gray-500">
+                No bundles could be created from this item yet. Try another wardrobe item.
+              </p>
+            ) : selectedCategory !== 'All' ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-500">
+                  No {selectedCategory} bundles yet. Try another occasion or style.
+                </p>
+                <button
+                  onClick={() => handleCategorySelect('All')}
+                  className="mt-4 text-xs font-semibold text-white bg-[#0a0f1c] border border-[#0a0f1c] rounded-full px-4 py-2 transition-colors hover:bg-gray-900"
+                >
+                  Show All
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Not enough items in your wardrobe to create a bundle. Add a Top, Bottom, and Footwear!
+              </p>
+            )
           ) : (
             <div className="flex flex-col gap-6">
               {bundles.map((bundle, index) => (
@@ -233,15 +431,18 @@ export default function Home({ onNavigate }) {
                       <div className="bg-indigo-50/50 text-indigo-900 text-xs font-semibold px-2.5 py-1 rounded-md">
                         {bundle.tags[0]}
                       </div>
-                      <div className="flex items-center gap-2.5">
+                      {/* <div className="flex items-center gap-2.5">
                         <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                           <div className="h-full bg-[#f59e0b] rounded-full" style={{ width: `${bundle.match}%` }}></div>
                         </div>
                         <span className="text-xs font-bold text-gray-900">{bundle.match}%</span>
-                      </div>
+                      </div> */}
                     </div>
 
                     <hr className="border-gray-50 mb-5" />
+
+                    {/* Scoring debug panel (DEV builds only, uses real backend values) */}
+                    <BundleScoreDebug raw={bundle.raw} />
 
                     {/* Actions */}
                     <div className="flex gap-2.5">

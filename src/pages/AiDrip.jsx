@@ -21,11 +21,8 @@ const imageOf = (item) => {
 export default function AiDrip({ onNavigate }) {
   const [selectedCategory, setSelectedCategory] = useState('topwear');
   const [bundles, setBundles] = useState([]);
-  const [bundleCount, setBundleCount] = useState(0);
   const [recommendedItem, setRecommendedItem] = useState(null);
-  const [suggestions, setSuggestions] = useState([]);
   const [expandedInsight, setExpandedInsight] = useState(null);
-  const [overlaySuggestion, setOverlaySuggestion] = useState(null);
   const [wishlisted, setWishlisted] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,16 +37,11 @@ export default function AiDrip({ onNavigate }) {
         if (cancelled) return;
         setRecommendedItem(data.recommended_item || null);
         setBundles(data.bundles || []);
-        setBundleCount(data.bundle_count || 0);
-        setSuggestions(data.suggestions || []);
-        setOverlaySuggestion(null);
       } catch (e) {
         if (cancelled) return;
         setError(e.message || 'Failed to load AI suggestions.');
         setBundles([]);
-        setBundleCount(0);
         setRecommendedItem(null);
-        setSuggestions([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -92,18 +84,14 @@ export default function AiDrip({ onNavigate }) {
       } else {
         await addWishlistItem(payload);
       }
-} catch (e) {
-        console.error('Failed to update wishlist:', e);
-        setWishlisted(prev => ({ ...prev, [id]: wasWishlisted }));
-      }
-    };
+    } catch (e) {
+      console.error('Failed to update wishlist:', e);
+      setWishlisted(prev => ({ ...prev, [id]: wasWishlisted }));
+    }
+  };
 
   const aiItemOf = (bundle, fallback = recommendedItem) =>
     (bundle.items || []).find(i => i.is_ai || i.item_id === bundle.ai_item_id) || fallback;
-
-  const productSuggestions = suggestions.length > 0
-    ? suggestions
-    : (recommendedItem ? [{ product: recommendedItem, bundle_count: bundleCount, bundles }] : []);
 
   const renderTiles = (bundle) => {
     const items = bundle.items || [];
@@ -202,11 +190,10 @@ export default function AiDrip({ onNavigate }) {
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
-                className={`flex-1 text-[13px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] ${
-                  selectedCategory === category
-                    ? 'bg-black text-white'
-                    : 'bg-gray-100 text-gray-600 border border-gray-200'
-                }`}
+                className={`flex-1 text-[13px] font-bold py-2.5 rounded-full transition-all duration-200 active:scale-[0.98] ${selectedCategory === category
+                  ? 'bg-black text-white'
+                  : 'bg-gray-100 text-gray-600 border border-gray-200'
+                  }`}
               >
                 {slotLabels[category]}
               </button>
@@ -277,16 +264,14 @@ export default function AiDrip({ onNavigate }) {
           </div>
         )}
 
-        {/* Product Suggestion Cards */}
-        {!loading && !error && productSuggestions.length > 0 && (
+        {/* Bundle Variation Cards */}
+        {!loading && !error && bundles.length > 0 && (
           <div className="px-5 mt-5">
-            {productSuggestions.map((suggestion) => {
-              const sBundles = suggestion.bundles || [];
-              const bundle = sBundles[0];
-              if (!bundle) return null;
+            {bundles.map((bundle, index) => {
+              const rank = index + 1;
+              const count = bundles.length;
               const isExpanded = expandedInsight === bundle.bundle_id;
-              const aiItem = aiItemOf(bundle, suggestion.product);
-              const count = suggestion.bundle_count || sBundles.length;
+              const aiItem = aiItemOf(bundle, recommendedItem);
 
               return (
                 <div
@@ -296,8 +281,11 @@ export default function AiDrip({ onNavigate }) {
                   {/* Header */}
                   <div className="flex justify-between items-center mb-3">
                     <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center shrink-0">
+                        #{rank}
+                      </span>
                       <h2 className="text-[16px] font-bold text-gray-900 tracking-tight truncate">
-                        {suggestion.product?.name || aiItem?.name || 'AI Bundle'}
+                        {recommendedItem?.name || aiItem?.name || 'AI Bundle'}
                       </h2>
                       <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full shrink-0">
                         {bundle.match_score}% match
@@ -316,6 +304,11 @@ export default function AiDrip({ onNavigate }) {
                       </svg>
                     </button>
                   </div>
+
+                  {/* Variation label */}
+                  <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mb-2.5">
+                    Variation {rank} of {count}
+                  </p>
 
                   {/* Product Tiles Row */}
                   {renderTiles(bundle)}
@@ -346,14 +339,6 @@ export default function AiDrip({ onNavigate }) {
                       Why this<br />product?
                     </button>
                   </div>
-
-                  {/* Show all bundles (secondary CTA) */}
-                  <button
-                    onClick={() => setOverlaySuggestion(suggestion)}
-                    className="mt-2.5 w-full text-[12px] font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-full py-2.5 transition-all duration-200 active:scale-[0.98]"
-                  >
-                    Show all {count} bundles
-                  </button>
 
                   {/* Expanded Insight */}
                   {isExpanded && (
@@ -392,15 +377,15 @@ export default function AiDrip({ onNavigate }) {
       <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 px-5 py-3 pb-5 flex justify-between items-center rounded-t-3xl shadow-[0_-10px_40px_rgb(0,0,0,0.03)] z-10">
         <button onClick={() => onNavigate('home')} className="flex flex-col items-center gap-1 text-gray-400 hover:text-black transition-colors">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-             <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
           </svg>
           <span className="text-[10px] font-bold">Home</span>
         </button>
 
         <button onClick={() => onNavigate('wardrobe')} className="flex flex-col items-center gap-1 text-gray-400 hover:text-black transition-colors">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-             <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"></path>
+            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"></path>
           </svg>
           <span className="text-[10px] font-bold">Wardrobe</span>
         </button>
@@ -420,78 +405,6 @@ export default function AiDrip({ onNavigate }) {
           <span className="text-[10px] font-bold">Profile</span>
         </button>
       </div>
-
-      {/* ── Show All Bundles (exploration view) ─────────────────────────── */}
-      {overlaySuggestion && (overlaySuggestion.bundles || []).length > 0 && (() => {
-        const oProduct = overlaySuggestion.product;
-        const oBundles = overlaySuggestion.bundles;
-        const oCount = overlaySuggestion.bundle_count || oBundles.length;
-
-        return (
-        <div className="absolute inset-0 z-40 bg-[#f9fafb] flex flex-col overflow-hidden animate-fade-slide-up">
-          {/* Top bar */}
-          <div className="px-6 pt-12 pb-5 bg-white border-b border-gray-100 shadow-sm rounded-b-3xl">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setOverlaySuggestion(null)}
-                className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-gray-600">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                  {oCount} {oCount === 1 ? 'Bundle' : 'Bundles'} Unlocked
-                </h1>
-                <p className="text-sm text-gray-500 mt-0.5">See what you can create with this product.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Fixed product banner */}
-          <div className="px-5 pt-4">
-            <div className="bg-indigo-50/80 border border-indigo-100/70 rounded-2xl p-3 flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl overflow-hidden bg-white shrink-0 border border-indigo-100/50">
-                <img src={imageOf(oProduct)} alt={oProduct?.name} className="w-full h-full object-cover" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">AI Pick · Included in every bundle</p>
-                <p className="text-[13px] font-bold text-gray-900 truncate">{oProduct?.name}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Ranked bundle list */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide px-5 pt-5 pb-10 space-y-5">
-            {oBundles.map((bundle, index) => (
-              <div
-                key={bundle.bundle_id}
-                className="bg-white rounded-2xl p-4 border border-gray-100 shadow-[0_4px_15px_rgba(0,0,0,0.03)] overflow-hidden"
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white text-[11px] font-bold flex items-center justify-center">
-                      {index + 1}
-                    </span>
-                    <h2 className="text-[14px] font-bold text-gray-900 tracking-tight">Bundle {index + 1}</h2>
-                  </div>
-                  <span className="text-[11px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                    {bundle.match_score}% Match
-                  </span>
-                </div>
-
-                {renderTiles(bundle)}
-
-                <p className="mt-3 text-[11px] text-gray-500 leading-relaxed">
-                  {bundle.explanation}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-        );
-      })()}
 
     </div>
   );

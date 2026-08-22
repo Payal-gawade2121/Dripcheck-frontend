@@ -18,6 +18,7 @@ export default function Profile({ onNavigate }) {
     { icon: 'user', label: 'Edit Profile' },
     { icon: 'sliders', label: 'Edit Preferences', action: 'edit-preferences' },
     { icon: 'heart', label: 'Wishlist', action: 'wishlist' },
+    { icon: 'settings', label: 'Munder testing', action: 'munder-testing' },
     { icon: 'help', label: 'Help & Support' },
   ];
 
