@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../AuthContext';
 import BundleScoreDebug from '../components/BundleScoreDebug';
 
+const API_BASE = 'http://127.0.0.1:8000';
+
 const OCCASION_FILTERS = [
   'All',
   'Formal',
@@ -32,7 +34,9 @@ export default function Home({ onNavigate }) {
   const { userUid } = useAuth();
 
   const mapBundle = (bundle, wardrobeMap) => {
-    const items = (bundle.items || []).map(id => wardrobeMap[id]).filter(Boolean);
+    const items = (bundle.items || [])
+      .map(item => typeof item === 'object' ? item : wardrobeMap[item])
+      .filter(Boolean);
     const top = items.find(i => i.category === 'Top');
     const bottom = items.find(i => i.category === 'Bottom');
     const footwear = items.find(i => i.category === 'Footwear');
@@ -53,8 +57,8 @@ export default function Home({ onNavigate }) {
 
   const resolveImage = (url) => {
     if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `http://localhost:8000${url}`;
+    if (/^https?:\/\//i.test(url)) return url;
+    return `${API_BASE}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   const itemMatches = (item, q) => {
@@ -375,7 +379,7 @@ export default function Home({ onNavigate }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-3 border-r border-white/20 bg-cover bg-center block hover:opacity-95 transition-opacity"
-                      style={bundle.top?.image_url ? { backgroundImage: `url(http://localhost:8000${bundle.top.image_url})` } : {}}
+                      style={resolveImage(bundle.top?.image_url) ? { backgroundImage: `url(${resolveImage(bundle.top.image_url)})` } : {}}
                     >
                       <div className="flex-1 flex items-center justify-center">
                         {!bundle.top?.image_url && <span className="font-bold text-black text-sm">Top</span>}
@@ -390,7 +394,7 @@ export default function Home({ onNavigate }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-3 border-r border-white/20 bg-cover bg-center block hover:opacity-95 transition-opacity"
-                      style={bundle.bottom?.image_url ? { backgroundImage: `url(http://localhost:8000${bundle.bottom.image_url})` } : {}}
+                      style={resolveImage(bundle.bottom?.image_url) ? { backgroundImage: `url(${resolveImage(bundle.bottom.image_url)})` } : {}}
                     >
                       <div className="flex-1 flex items-center justify-center">
                         {!bundle.bottom?.image_url && <span className="font-bold text-black text-sm">Bottom</span>}
@@ -405,7 +409,7 @@ export default function Home({ onNavigate }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 bg-gradient-to-b from-gray-200 to-gray-500 relative flex flex-col justify-between p-3 bg-cover bg-center block hover:opacity-95 transition-opacity"
-                      style={bundle.footwear?.image_url ? { backgroundImage: `url(http://localhost:8000${bundle.footwear.image_url})` } : {}}
+                      style={resolveImage(bundle.footwear?.image_url) ? { backgroundImage: `url(${resolveImage(bundle.footwear.image_url)})` } : {}}
                     >
                       <div className="flex-1 flex items-center justify-center">
                         {!bundle.footwear?.image_url && <span className="font-bold text-black text-sm">Footwear</span>}
