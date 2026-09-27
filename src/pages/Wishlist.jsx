@@ -109,10 +109,10 @@ export default function Wishlist({ onNavigate }) {
               )}
             </button>
           </div>
-          <div className="p-3">
-            <h3 className="font-semibold text-gray-800 text-xs truncate mb-0.5">{p.name}</h3>
-            <div className="flex items-center justify-between">
-              <p className="font-bold text-black text-sm">
+          <div className="p-4">
+            <h3 className="font-semibold text-gray-800 text-[13px] truncate mb-1">{p.name}</h3>
+            <div className="flex items-center justify-between gap-2">
+              <p className="font-bold text-black text-sm truncate">
                 {p.price != null ? `$${Number(p.price).toFixed(2)}` : p.brand || ''}
               </p>
               {p.brand && p.price != null && (
@@ -170,7 +170,7 @@ export default function Wishlist({ onNavigate }) {
 
     return (
       <>
-        <div className="relative w-full h-[150px] bg-gray-50 overflow-hidden">
+        <div className="relative w-full h-[180px] bg-gray-50 overflow-hidden">
           <div className="w-full h-full flex bg-gray-300">
             {renderBundlePanel('Top', top)}
             {renderBundlePanel('Bottom', bottom)}
@@ -194,10 +194,10 @@ export default function Wishlist({ onNavigate }) {
             )}
           </button>
         </div>
-        <div className="p-3">
-          <h3 className="font-semibold text-gray-800 text-xs truncate mb-0.5">{title}</h3>
-          <p className="text-[11px] text-gray-500 truncate mb-1">{subtitle}</p>
-          <div className="flex items-center justify-between">
+        <div className="p-4">
+          <h3 className="font-semibold text-gray-800 text-[13px] truncate mb-1">{title}</h3>
+          <p className="text-[12px] text-gray-500 truncate mb-2">{subtitle}</p>
+          <div className="flex items-center justify-between gap-2">
             <p className="font-bold text-black text-sm">
               {price != null ? `$${Number(price).toFixed(2)}` : ''}
             </p>
@@ -216,71 +216,70 @@ export default function Wishlist({ onNavigate }) {
 
   return (
     <div className="w-full h-full flex flex-col bg-[#f9fafb] relative overflow-hidden">
-      {/* Header */}
-      <div className="px-6 pt-12 pb-6 bg-white border-b border-gray-100 shadow-sm rounded-b-3xl flex items-center gap-4">
-        <button
-          onClick={() => onNavigate('profile')}
-          className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-gray-600">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 leading-tight">Wishlist</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{items.length} saved {items.length === 1 ? 'item' : 'items'}</p>
-        </div>
-      </div>
+      <div className="flex-1 overflow-y-auto app-scroll">
 
-      {/* Tabs */}
-      <div className="px-6 mt-5">
-        <div className="bg-white rounded-2xl p-1.5 flex gap-1 shadow-[0_8px_30px_rgb(0,0,0,0.03)] border border-gray-100">
-          {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${
-                activeTab === tab.key ? 'bg-black text-white shadow-md' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+        <div className="px-5 sm:px-8 xl:px-12 py-8 xl:py-10 max-w-[1560px] mx-auto">
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-8 px-4 mt-5">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="min-h-[300px] flex flex-col items-center justify-center text-center px-6">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 mb-4">
-              <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+          {/* Header + Tabs */}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h1 className="text-2xl lg:text-[2rem] font-bold text-gray-900 leading-tight tracking-tight">Wishlist</h1>
+              <p className="text-sm lg:text-[15px] text-gray-500 mt-1.5">
+                {items.length} saved {items.length === 1 ? 'item' : 'items'} — products and outfits you saved for later.
+              </p>
             </div>
-            <h3 className="text-base font-bold text-gray-900">Nothing here yet</h3>
-            <p className="text-xs text-gray-500 mt-1 max-w-[240px]">
-              {activeTab === 'all'
-                ? 'Products and bundles you wishlist will show up here.'
-                : `You haven't added any ${activeTab === 'product' ? 'products' : 'bundles'} to your wishlist yet.`}
-            </p>
+
+            <div className="bg-white rounded-2xl p-1.5 flex gap-1 border border-gray-200/80 lg:w-[360px]">
+              {tabs.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={`flex-1 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200 ${
+                    activeTab === tab.key ? 'bg-[#0a0f1c] text-white shadow-md' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3 pb-8">
-            {filtered.map(entry => (
-              <div
-                key={entry.id}
-                className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-300"
-              >
-                {renderCard(entry)}
+
+          {/* Content */}
+          <div className="mt-7">
+            {loading ? (
+              <div className="flex justify-center py-24">
+                <div className="w-7 h-7 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
               </div>
-            ))}
+            ) : filtered.length === 0 ? (
+              <div className="min-h-[320px] flex flex-col items-center justify-center text-center px-6 bg-white rounded-3xl border border-gray-200/80">
+                <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-200 mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Nothing here yet</h3>
+                <p className="text-sm text-gray-500 mt-1.5 max-w-[320px]">
+                  {activeTab === 'all'
+                    ? 'Products and bundles you wishlist will show up here.'
+                    : `You haven't added any ${activeTab === 'product' ? 'products' : 'bundles'} to your wishlist yet.`}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 lg:gap-5">
+                {filtered.map(entry => (
+                  <div
+                    key={entry.id}
+                    className="group bg-white rounded-2xl overflow-hidden border border-gray-200/80 hover:border-gray-300 hover:shadow-lg transition-all duration-300"
+                  >
+                    {renderCard(entry)}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          <div className="h-8" />
+        </div>
       </div>
     </div>
   );

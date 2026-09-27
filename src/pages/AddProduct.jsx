@@ -278,18 +278,18 @@ export default function AddProduct({ onNavigate }) {
   // ════════════════════════════════════════════════════════════════════════════
   if (showSuccessPopup) {
     return (
-      <div className="w-full max-w-md mx-auto h-full flex flex-col items-center justify-center bg-[#f0f0f0] text-gray-900 scrollbar-hide p-8 text-center relative overflow-hidden">
-         <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(16,185,129,0.5)] animate-bounce">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f4f4f5] text-gray-900 p-8 text-center">
+         <div className="w-20 h-20 bg-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(16,185,129,0.4)] animate-bounce">
             <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
             </svg>
          </div>
-         <h2 className="text-2xl font-black text-gray-900 mb-2">Success!</h2>
-         <p className="text-sm font-semibold text-gray-500">
-            Product added to your wardrobe.
+         <h2 className="text-3xl font-black text-gray-900 mb-2">Success!</h2>
+         <p className="text-[15px] font-semibold text-gray-500">
+           Product added to your wardrobe.
          </p>
-         <p className="text-xs text-gray-400 mt-8 animate-pulse">
-            Redirecting to {mapCategory(addedCategory)}...
+         <p className="text-sm text-gray-400 mt-8 animate-pulse">
+           Redirecting to {mapCategory(addedCategory)}...
          </p>
       </div>
     );
@@ -300,172 +300,200 @@ export default function AddProduct({ onNavigate }) {
   // ════════════════════════════════════════════════════════════════════════════
   if (step === 'form') {
     return (
-      <div className="w-full max-w-md mx-auto h-full flex flex-col bg-[#f0f0f0] text-gray-900 scrollbar-hide relative overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-12 pb-6">
-          <button
-            onClick={() => onNavigate('home')}
-            className="w-9 h-9 bg-white border border-gray-200 hover:bg-gray-50 rounded-full flex items-center justify-center transition"
-          >
-            <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Add Item</p>
-            <h2 className="text-lg font-bold text-gray-900 leading-tight">Upload Clothing</h2>
-          </div>
-        </div>
+      <div className="w-full h-full flex flex-col bg-[#f4f4f5] text-gray-900">
+        <div className="flex-1 overflow-y-auto app-scroll">
+          <div className="px-5 sm:px-8 xl:px-12 py-8 xl:py-10 max-w-[1400px] mx-auto">
 
-        <div className="flex-1 px-5 pb-10 space-y-5">
-          {errorMsg && (
-            <div className="bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold p-3.5 rounded-2xl">
-              {errorMsg}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-2 bg-white shadow-sm border border-gray-200 rounded-2xl p-1.5">
-            {[
-              ['link', 'Add with link'],
-              ['upload', 'Upload photo'],
-            ].map(([mode, label]) => (
+            {/* Header */}
+            <div className="flex items-center gap-4">
               <button
-                key={mode}
-                type="button"
-                onClick={() => {
-                  setInputMode(mode);
-                  setErrorMsg('');
-                }}
-                className={`py-3 rounded-xl text-xs font-bold transition-all ${
-                  inputMode === mode
-                    ? 'bg-white text-black shadow-lg'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-white shadow-sm'
-                }`}
+                onClick={() => onNavigate('wardrobe')}
+                className="w-10 h-10 shrink-0 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition"
+                aria-label="Back to wardrobe"
               >
-                {label}
+                <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
               </button>
-            ))}
-          </div>
-
-          {inputMode === 'link' && (
-            <div className="space-y-4">
-              <DarkInput
-                label="Product Link"
-                placeholder="Paste a clothing product URL"
-                value={productLink}
-                onChange={e => setProductLink(e.target.value)}
-              />
-              <button
-                onClick={handleLinkSubmit}
-                className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/30 transition-all active:scale-95"
-              >
-                Add Clothing Item
-              </button>
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Add Item</p>
+                <h2 className="text-2xl lg:text-[1.75rem] font-bold text-gray-900 leading-tight tracking-tight">Upload Clothing</h2>
+              </div>
             </div>
-          )}
 
-          {inputMode === 'upload' && (
-            <>
-          {/* Image Picker */}
-          <div>
-            <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
-              Product Photo
-            </label>
-            <div className="relative border-2 border-dashed border-gray-300 hover:border-violet-500/60 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer transition-colors bg-white shadow-sm min-h-[180px]">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-              />
-              {imagePreview ? (
-                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden">
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-gray-900 text-xs font-semibold opacity-0 hover:opacity-100 transition-opacity">
-                    Change Image
+            {errorMsg && (
+              <div className="mt-6 bg-rose-50 border border-rose-200 text-rose-700 text-sm font-semibold px-4 py-3.5 rounded-2xl max-w-2xl">
+                {errorMsg}
+              </div>
+            )}
+
+            {/* Mode switch */}
+            <div className="mt-7 inline-flex bg-white border border-gray-200 rounded-2xl p-1.5 gap-1">
+              {[
+                ['link', 'Add with link'],
+                ['upload', 'Upload photo'],
+              ].map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setInputMode(mode);
+                    setErrorMsg('');
+                  }}
+                  className={`px-6 py-2.5 rounded-xl text-[13px] font-bold transition-all ${
+                    inputMode === mode
+                      ? 'bg-[#0a0f1c] text-white shadow-md'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-6 lg:grid-cols-2 items-start">
+              {/* ── Left: media / link panel ─────────────────────────────── */}
+              {inputMode === 'upload' ? (
+                <div className="bg-white border border-gray-200 rounded-3xl p-6">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">
+                    Product Photo
+                  </p>
+                  <div className="relative border-2 border-dashed border-gray-300 hover:border-violet-400 rounded-2xl p-5 flex flex-col items-center justify-center cursor-pointer transition-colors bg-gray-50/60 min-h-[300px]">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                    />
+                    {imagePreview ? (
+                      <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden">
+                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-sm font-semibold opacity-0 hover:opacity-100 transition-opacity">
+                          Change Image
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <div className="w-14 h-14 bg-white border border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-7 h-7 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                        <p className="text-sm font-semibold text-gray-700">Upload Product Image</p>
+                        <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP · Max 5MB</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-4">
-                  <div className="w-14 h-14 bg-gray-100 border border-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-3">
-                    <svg className="w-7 h-7 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.6} d="M12 4v16m8-8H4" />
-                    </svg>
-                  </div>
-                  <p className="text-sm font-semibold text-gray-700">Upload Product Image</p>
-                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP · Max 5MB</p>
+                <div className="bg-[#0a0f1c] text-white rounded-3xl p-8 flex flex-col justify-center h-full min-h-[280px]">
+                  <h3 className="text-xl font-bold leading-snug">Paste a product link</h3>
+                  <p className="text-sm text-white/60 mt-3 leading-relaxed">
+                    We'll fetch the photo, name and details automatically, then add the piece
+                    straight to your wardrobe.
+                  </p>
+                  <ul className="mt-6 space-y-2.5">
+                    {['Detects the product name & image', 'Reads colour, fit and material', 'Tags the right occasion and season'].map(t => (
+                      <li key={t} className="flex items-center gap-2.5 text-[13px] text-white/70">
+                        <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center shrink-0">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} className="w-2 h-2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                        {t}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
-            </div>
-          </div>
 
-          {/* Form Fields */}
-          <div className="space-y-3">
-            <DarkInput
-              label="Product Name"
-              placeholder="e.g. Black Oversized Tee"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-            <DarkInput
-              label="Primary Color"
-              placeholder="e.g. Jet Black"
-              value={color}
-              onChange={e => setColor(e.target.value)}
-            />
-            <DarkInput
-              label="Type / Style"
-              placeholder="e.g. T-Shirt, Slim Jeans, Sneakers"
-              value={typeStr}
-              onChange={e => setTypeStr(e.target.value)}
-            />
+              {/* ── Right: fields + actions ─────────────────────────────── */}
+              <div className="bg-white border border-gray-200 rounded-3xl p-6">
+                {inputMode === 'link' ? (
+                  <div className="space-y-5">
+                    <DarkInput
+                      label="Product Link"
+                      placeholder="Paste a clothing product URL"
+                      value={productLink}
+                      onChange={e => setProductLink(e.target.value)}
+                    />
+                    <button
+                      onClick={handleLinkSubmit}
+                      className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.99]"
+                    >
+                      Add Clothing Item
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <DarkInput
+                      label="Product Name"
+                      placeholder="e.g. Black Oversized Tee"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                    />
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <DarkInput
+                        label="Primary Color"
+                        placeholder="e.g. Jet Black"
+                        value={color}
+                        onChange={e => setColor(e.target.value)}
+                      />
+                      <DarkInput
+                        label="Type / Style"
+                        placeholder="e.g. T-Shirt, Jeans"
+                        value={typeStr}
+                        onChange={e => setTypeStr(e.target.value)}
+                      />
+                    </div>
 
-            {/* Category Selector */}
-            <div>
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">Category</label>
-              <div className="grid grid-cols-3 gap-2">
-                {categories.map(cat => (
-                  <button
-                    key={cat}
-                    onClick={() => setCategory(cat)}
-                    className={`py-3 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1 ${
-                      category === cat
-                        ? 'bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-500/30'
-                        : 'bg-white shadow-sm border-gray-200 text-gray-500 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="text-lg">{categoryIcons[cat]}</span>
-                    <span style={{ fontSize: '9px' }}>{cat}</span>
-                  </button>
-                ))}
+                    {/* Category Selector */}
+                    <div>
+                      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2.5">Category</label>
+                      <div className="grid grid-cols-3 gap-2.5">
+                        {categories.map(cat => (
+                          <button
+                            key={cat}
+                            onClick={() => setCategory(cat)}
+                            className={`py-3.5 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-1.5 ${
+                              category === cat
+                                ? 'bg-violet-600 border-violet-600 text-white shadow-lg shadow-violet-500/25'
+                                : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-800'
+                            }`}
+                          >
+                            <span className="text-lg">{categoryIcons[cat]}</span>
+                            <span className="text-[11px]">{cat}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="pt-2 space-y-3">
+                      {/* <button
+                        onClick={handleAvatarGenerate}
+                        className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/30 transition-all active:scale-[0.99]"
+                      >
+                        <span className="text-lg">✨</span>
+                        Generate Avatar &amp; Bundle
+                      </button> */}
+                      <button
+                        onClick={handleUploadSubmit}
+                        className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 hover:text-gray-900 transition-all"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        Generate AI E-Commerce Shot Only
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="pt-4 space-y-3">
-            {/* PRIMARY: Generate Avatar + Bundle */}
-            <button
-              onClick={handleAvatarGenerate}
-              className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white shadow-lg shadow-violet-500/40 transition-all active:scale-95"
-            >
-              <span className="text-lg">✨</span>
-              Generate Avatar &amp; Bundle
-            </button>
-
-            {/* SECONDARY: Standard AI shot only */}
-            <button
-              onClick={handleUploadSubmit}
-              className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 border border-gray-200 text-gray-700 hover:text-gray-900 transition-all"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Generate AI E-Commerce Shot Only
-            </button>
+            <div className="h-8" />
           </div>
-            </>
-          )}
         </div>
       </div>
     );
@@ -478,7 +506,7 @@ export default function AddProduct({ onNavigate }) {
     const isAvatar = activeMode === 'avatar';
     const isLink = activeMode === 'link';
     return (
-      <div className="w-full max-w-md mx-auto h-full flex flex-col items-center justify-center bg-[#f0f0f0] text-gray-900 scrollbar-hide p-8 text-center">
+      <div className="w-full h-full flex flex-col items-center justify-center bg-[#f4f4f5] text-gray-900 p-8 text-center">
         {/* Animated ring */}
         <div className="relative w-32 h-32 mb-8 flex items-center justify-center">
           <div className="absolute inset-0 border-4 border-gray-200 rounded-full" />
@@ -491,15 +519,15 @@ export default function AddProduct({ onNavigate }) {
           <span className="text-4xl absolute">{isAvatar ? '🧬' : '⚡'}</span>
         </div>
 
-        <p className="text-xl font-bold tracking-wide">
+        <p className="text-2xl font-bold tracking-wide">
           {isAvatar ? 'FLUX is crafting your look' : isLink ? 'Adding item from link' : 'Nano Banana processing'}
         </p>
-        <p className={`text-sm font-semibold mt-2 min-h-[20px] animate-pulse ${
-          isAvatar ? 'text-violet-400' : 'text-emerald-400'
+        <p className={`text-[15px] font-semibold mt-2.5 min-h-[20px] animate-pulse ${
+          isAvatar ? 'text-violet-500' : 'text-emerald-600'
         }`}>
           {loadingText}
         </p>
-        <p className="text-xs text-gray-400 mt-6 max-w-xs leading-relaxed">
+        <p className="text-sm text-gray-400 mt-6 max-w-md leading-relaxed">
           {isAvatar
             ? 'Analysing compatibility, building your bundle, and generating a fashion avatar with FLUX.2-klein-9B…'
             : 'Generating studio lighting, removing background, and analysing product attributes…'}
@@ -520,187 +548,188 @@ export default function AddProduct({ onNavigate }) {
     const allBundleItems = [ar.uploaded_item, ...ar.bundle];
 
     return (
-      <div className="w-full max-w-md mx-auto h-full flex flex-col bg-[#f0f0f0] text-gray-900 scrollbar-hide overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-12 pb-4">
-          <button
-            onClick={() => setStep('form')}
-            className="w-9 h-9 bg-white border border-gray-200 hover:bg-gray-50 rounded-full flex items-center justify-center transition"
-          >
-            <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">AI Generated</p>
-            <h2 className="text-lg font-bold text-gray-900 leading-tight">Your Avatar &amp; Bundle</h2>
-          </div>
-        </div>
+      <div className="w-full h-full flex flex-col bg-[#f4f4f5] text-gray-900">
+        <div className="flex-1 overflow-y-auto app-scroll">
+          <div className="px-5 sm:px-8 xl:px-12 py-8 xl:py-10 max-w-[1400px] mx-auto">
 
-        <div className="px-5 pb-10">
-          {/* Avatar Image */}
-          <div className="mb-5">
-            {avatarImgUrl ? (
-              <div className="relative w-full rounded-3xl overflow-hidden border border-violet-500/30 shadow-2xl shadow-violet-500/20">
-                <img
-                  src={avatarImgUrl}
-                  alt="Generated Avatar"
-                  className="w-full object-cover"
-                  style={{ maxHeight: '520px', objectPosition: 'top' }}
-                />
-                {/* Overlay badge */}
-                <div className="absolute top-3 right-3 bg-violet-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                  FLUX.2 Generated
-                </div>
+            {/* Header */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setStep('form')}
+                className="w-10 h-10 shrink-0 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition"
+                aria-label="Back to form"
+              >
+                <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">AI Generated</p>
+                <h2 className="text-2xl lg:text-[1.75rem] font-bold text-gray-900 leading-tight tracking-tight">Your Avatar &amp; Bundle</h2>
               </div>
-            ) : (
-              <div className="w-full h-64 rounded-3xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-center p-6">
-                <span className="text-4xl mb-3">🤖</span>
-                <p className="text-sm font-semibold text-gray-600">Avatar Generation Failed</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  The FLUX model is currently unavailable. Your bundle is still ready below.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Score + Style Tags */}
-          <div className="flex items-center gap-3 mb-5">
-            {/* Compatibility Score */}
-            <div className="flex-1 bg-white shadow-sm border border-gray-200 rounded-2xl p-3 text-center">
-              <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Compatibility</p>
-              <p className="text-2xl font-black text-gray-900 mt-0.5">
-                {ar.compatibility_score > 0 ? `${ar.compatibility_score}` : '—'}
-                <span className="text-sm font-semibold text-gray-500">/100</span>
-              </p>
             </div>
 
-            {/* Style Tags */}
-            <div className="flex-[2] flex flex-wrap gap-1.5 items-center">
-              {(ar.style_tags || []).map(tag => (
-                <span
-                  key={tag}
-                  className="bg-violet-600/20 border border-violet-500/30 text-violet-300 text-[10px] font-bold px-2.5 py-1 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
-              {(ar.occasion_tags || []).slice(0, 2).map(tag => (
-                <span
-                  key={tag}
-                  className="bg-white shadow-sm border border-gray-200 text-gray-500 text-[10px] font-bold px-2.5 py-1 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Bundle Breakdown */}
-          <div className="mb-5">
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">
-              Curated Bundle ({allBundleItems.length} items)
-            </p>
-            <div className="space-y-2">
-              {allBundleItems.map((item, idx) => {
-                const isUploaded = idx === 0;
-                const colorClass = categoryColors[item.category] || 'bg-white shadow-sm text-gray-600 border-gray-200';
-                return (
-                  <div
-                    key={idx}
-                    className={`flex items-center gap-3 p-3 rounded-2xl border transition ${
-                      isUploaded
-                        ? 'bg-violet-600/15 border-violet-500/30'
-                        : 'bg-white shadow-sm border-gray-200'
-                    }`}
-                  >
-                    {/* Color swatch */}
-                    <div
-                      className="w-10 h-10 rounded-xl flex-shrink-0 border border-gray-200 flex items-center justify-center"
-                      style={{ backgroundColor: colorToHex(item.primary_color) }}
-                    >
-                      <span className="text-lg">{catEmoji(item.category)}</span>
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-xs font-bold text-gray-900 truncate">{item.name}</p>
-                        {isUploaded && (
-                          <span className="text-[9px] font-bold text-violet-400 bg-violet-500/20 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                            Uploaded
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${colorClass}`}>
-                          {item.category}
-                        </span>
-                        <span className="text-[9px] text-gray-400 font-semibold">
-                          {item.primary_color}
-                        </span>
-                        {item.fit && (
-                          <span className="text-[9px] text-gray-400 font-semibold">
-                            · {item.fit}
-                          </span>
-                        )}
-                      </div>
+            <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start">
+              {/* Avatar Image */}
+              <div>
+                {avatarImgUrl ? (
+                  <div className="relative w-full rounded-3xl overflow-hidden border border-violet-500/30 shadow-[0_20px_60px_-20px_rgba(139,92,246,0.35)]">
+                    <img
+                      src={avatarImgUrl}
+                      alt="Generated Avatar"
+                      className="w-full object-cover"
+                      style={{ maxHeight: '620px', objectPosition: 'top' }}
+                    />
+                    <div className="absolute top-4 right-4 bg-violet-600/90 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                      FLUX.2 Generated
                     </div>
                   </div>
-                );
-              })}
+                ) : (
+                  <div className="w-full min-h-[280px] rounded-3xl border-2 border-dashed border-gray-200 bg-white flex flex-col items-center justify-center text-center p-8">
+                    <span className="text-4xl mb-3">🤖</span>
+                    <p className="text-base font-semibold text-gray-700">Avatar Generation Failed</p>
+                    <p className="text-sm text-gray-400 mt-1.5 max-w-[280px]">
+                      The FLUX model is currently unavailable. Your bundle is still ready.
+                    </p>
+                  </div>
+                )}
 
-              {allBundleItems.length <= 1 && (
-                <div className="text-center py-6 bg-white shadow-sm border border-gray-200 rounded-2xl">
-                  <p className="text-xs text-gray-400 font-semibold">No matching items found in wardrobe.</p>
-                  <p className="text-[10px] text-gray-300 mt-1">Add more items to get a complete bundle.</p>
+                {/* Score + Style Tags */}
+                <div className="mt-5 flex items-stretch gap-3">
+                  <div className="bg-white border border-gray-200 rounded-2xl p-4 text-center shrink-0">
+                    <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Compatibility</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">
+                      {ar.compatibility_score > 0 ? `${ar.compatibility_score}` : '—'}
+                      <span className="text-sm font-semibold text-gray-500">/100</span>
+                    </p>
+                  </div>
+                  <div className="flex-1 flex flex-wrap gap-2 items-center content-center">
+                    {(ar.style_tags || []).map(tag => (
+                      <span
+                        key={tag}
+                        className="bg-violet-50 border border-violet-200 text-violet-700 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                    {(ar.occasion_tags || []).slice(0, 2).map(tag => (
+                      <span
+                        key={tag}
+                        className="bg-white border border-gray-200 text-gray-600 text-[11px] font-bold px-2.5 py-1 rounded-full"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* Dominant Color */}
-          {ar.dominant_color && (
-            <div className="mb-5 bg-white shadow-sm border border-gray-200 rounded-2xl p-3 flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-xl flex-shrink-0 border border-gray-200"
-                style={{ backgroundColor: colorToHex(ar.dominant_color) }}
-              />
+              {/* Bundle Breakdown + actions */}
               <div>
-                <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Dominant Palette</p>
-                <p className="text-xs font-bold text-gray-900">{ar.dominant_color} · {ar.dominant_palette}</p>
+                <div className="bg-white border border-gray-200 rounded-3xl p-6">
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
+                    Curated Bundle ({allBundleItems.length} items)
+                  </p>
+                  <div className="space-y-2.5">
+                    {allBundleItems.map((item, idx) => {
+                      const isUploaded = idx === 0;
+                      const colorClass = categoryColors[item.category] || 'bg-white border-gray-200 text-gray-600';
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-4 p-3.5 rounded-2xl border transition ${
+                            isUploaded
+                              ? 'bg-violet-50 border-violet-200'
+                              : 'bg-gray-50 border-gray-200/70'
+                          }`}
+                        >
+                          <div
+                            className="w-11 h-11 rounded-xl flex-shrink-0 border border-gray-200 flex items-center justify-center"
+                            style={{ backgroundColor: colorToHex(item.primary_color) }}
+                          >
+                            <span className="text-lg">{catEmoji(item.category)}</span>
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-[13px] font-bold text-gray-900 truncate">{item.name}</p>
+                              {isUploaded && (
+                                <span className="text-[9px] font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-full flex-shrink-0">
+                                  Uploaded
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${colorClass}`}>
+                                {item.category}
+                              </span>
+                              <span className="text-[10px] text-gray-500 font-semibold">
+                                {item.primary_color}
+                              </span>
+                              {item.fit && (
+                                <span className="text-[10px] text-gray-500 font-semibold">
+                                  · {item.fit}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {allBundleItems.length <= 1 && (
+                      <div className="text-center py-6 bg-gray-50 border border-gray-200 rounded-2xl">
+                        <p className="text-[13px] text-gray-500 font-semibold">No matching items found in wardrobe.</p>
+                        <p className="text-[11px] text-gray-400 mt-1">Add more items to get a complete bundle.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Dominant Color */}
+                {ar.dominant_color && (
+                  <div className="mt-5 bg-white border border-gray-200 rounded-2xl p-4 flex items-center gap-4">
+                    <div
+                      className="w-10 h-10 rounded-xl flex-shrink-0 border border-gray-200"
+                      style={{ backgroundColor: colorToHex(ar.dominant_color) }}
+                    />
+                    <div>
+                      <p className="text-[9px] text-gray-500 uppercase tracking-widest font-bold">Dominant Palette</p>
+                      <p className="text-[13px] font-bold text-gray-900">{ar.dominant_color} · {ar.dominant_palette}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="mt-6 space-y-3">
+                  <button
+                    onClick={handleUploadSubmit}
+                    className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.99]"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Add Item to Wardrobe
+                  </button>
+                  <button
+                    onClick={handleAvatarGenerate}
+                    className="w-full py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 transition-all"
+                  >
+                    <span>🔄</span>
+                    Regenerate Avatar
+                  </button>
+                  <button
+                    onClick={() => setStep('form')}
+                    className="w-full py-3 text-sm font-semibold text-gray-500 hover:text-gray-800 transition"
+                  >
+                    Back to Form
+                  </button>
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Action Buttons */}
-          <div className="space-y-3 mt-6">
-            {/* Add to Wardrobe — proceed with standard upload */}
-            <button
-              onClick={handleUploadSubmit}
-              className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/30 transition-all active:scale-95"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-              Add Item to Wardrobe
-            </button>
-
-            {/* Try different avatar */}
-            <button
-              onClick={handleAvatarGenerate}
-              className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-white shadow-sm hover:bg-gray-100 border border-gray-200 text-gray-700 hover:text-gray-900 transition-all"
-            >
-              <span>🔄</span>
-              Regenerate Avatar
-            </button>
-
-            <button
-              onClick={() => setStep('form')}
-              className="w-full py-3.5 text-sm font-semibold text-gray-400 hover:text-gray-600 transition"
-            >
-              ← Back to Form
-            </button>
+            <div className="h-8" />
           </div>
         </div>
       </div>
@@ -716,89 +745,102 @@ export default function AddProduct({ onNavigate }) {
     const origUrl = `${API_BASE_URL.replace('/api', '')}${uploadResult.original_image}`;
 
     return (
-      <div className="w-full max-w-md mx-auto h-full flex flex-col bg-[#f0f0f0] text-gray-900 scrollbar-hide p-5 overflow-y-auto">
-        <div className="flex items-center gap-3 mb-5">
-          <button onClick={() => setStep('form')} className="w-9 h-9 bg-white border border-gray-200 hover:bg-gray-50 rounded-full flex items-center justify-center transition">
-            <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <div>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Review</p>
-            <h2 className="text-lg font-bold text-gray-900">Verify AI Result</h2>
-          </div>
-        </div>
+      <div className="w-full h-full flex flex-col bg-[#f4f4f5] text-gray-900">
+        <div className="flex-1 overflow-y-auto app-scroll">
+          <div className="px-5 sm:px-8 xl:px-12 py-8 xl:py-10 max-w-[1400px] mx-auto">
 
-        {isFallback && (
-          <div className="mb-4 bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold p-3.5 rounded-2xl flex gap-2">
-            <svg className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <span>AI enhancement unavailable. Original image used instead.</span>
-          </div>
-        )}
-
-        {/* Images */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
-          <div>
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Original</span>
-            <div className="aspect-[4/5] bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
-              <img src={origUrl} alt="Original" className="w-full h-full object-cover" />
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setStep('form')}
+                className="w-10 h-10 shrink-0 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition"
+                aria-label="Back to form"
+              >
+                <svg className="w-4 h-4 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <div>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">Review</p>
+                <h2 className="text-2xl lg:text-[1.75rem] font-bold text-gray-900 leading-tight tracking-tight">Verify AI Result</h2>
+              </div>
             </div>
-          </div>
-          <div>
-            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider block mb-1.5 flex items-center gap-1">
-              {!isFallback && <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />}
-              E-Commerce Shot
-            </span>
-            <div className="aspect-[4/5] bg-white shadow-sm border-2 border-emerald-500/50 rounded-xl overflow-hidden relative">
-              <img src={prodUrl} alt="AI Enhanced" className="w-full h-full object-cover" />
-              {!isFallback && (
-                <div className="absolute top-2 right-2 bg-emerald-500 text-gray-900 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">
-                  AI
+
+            {isFallback && (
+              <div className="mt-6 bg-amber-50 border border-amber-200 text-amber-800 text-sm font-semibold p-4 rounded-2xl flex gap-2.5 max-w-3xl">
+                <svg className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span>AI enhancement unavailable. Original image used instead.</span>
+              </div>
+            )}
+
+            <div className="mt-7 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-start">
+              {/* Images */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Original</span>
+                  <div className="aspect-[4/5] bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                    <img src={origUrl} alt="Original" className="w-full h-full object-cover" />
+                  </div>
                 </div>
-              )}
+                <div>
+                  <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider block mb-2 flex items-center gap-1.5">
+                    {!isFallback && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />}
+                    E-Commerce Shot
+                  </span>
+                  <div className="aspect-[4/5] bg-white border-2 border-emerald-500/50 rounded-2xl overflow-hidden relative">
+                    <img src={prodUrl} alt="AI Enhanced" className="w-full h-full object-cover" />
+                    {!isFallback && (
+                      <div className="absolute top-3 right-3 bg-emerald-500 text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
+                        AI
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Metadata Fields */}
+              <div className="bg-white border border-gray-200 rounded-3xl p-6 space-y-4">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">AI Inferred Attributes</p>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <DarkInput label="Name" value={editedProduct.name} onChange={e => setEditedProduct(prev => ({ ...prev, name: e.target.value }))} />
+                  <DarkInput label="Color" value={editedProduct.color} onChange={e => setEditedProduct(prev => ({ ...prev, color: e.target.value }))} />
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <DarkSelect label="Color Family" value={editedProduct.metadata.color_family} onChange={e => updateMetadataField('color_family', e.target.value)} options={['Neutral','Earth','Dark','Bold','Pastel','Warm']} />
+                  <DarkSelect label="Pattern" value={editedProduct.metadata.pattern} onChange={e => updateMetadataField('pattern', e.target.value)} options={['Solid','Stripes','Checks','Graphic','Floral','Abstract']} />
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <DarkSelect label="Fit" value={editedProduct.metadata.fit} onChange={e => updateMetadataField('fit', e.target.value)} options={['Slim','Regular','Relaxed','Oversized','Cropped','Baggy','Tapered']} />
+                  <DarkSelect label="Season" value={editedProduct.metadata.season} onChange={e => updateMetadataField('season', e.target.value)} options={['Summer','Winter','Monsoon','All-season']} />
+                </div>
+
+                {/* Action Buttons */}
+                <div className="pt-4 flex flex-col gap-3">
+                  <button
+                    onClick={() => handleConfirm(true)}
+                    className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/25 transition-all active:scale-[0.99]"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Approve &amp; Add to Wardrobe
+                  </button>
+                  <button
+                    onClick={() => handleConfirm(false)}
+                    className="w-full py-3.5 text-sm font-bold text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition duration-300"
+                  >
+                    Discard &amp; Start Over
+                  </button>
+                </div>
+              </div>
             </div>
+
+            <div className="h-8" />
           </div>
-        </div>
-
-        {/* Metadata Fields */}
-        <div className="border-t border-gray-200 pt-4 space-y-4">
-          <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">AI Inferred Attributes</p>
-
-          <div className="grid grid-cols-2 gap-3">
-            <DarkInput label="Name" value={editedProduct.name} onChange={e => setEditedProduct(prev => ({ ...prev, name: e.target.value }))} />
-            <DarkInput label="Color" value={editedProduct.color} onChange={e => setEditedProduct(prev => ({ ...prev, color: e.target.value }))} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <DarkSelect label="Color Family" value={editedProduct.metadata.color_family} onChange={e => updateMetadataField('color_family', e.target.value)} options={['Neutral','Earth','Dark','Bold','Pastel','Warm']} />
-            <DarkSelect label="Pattern" value={editedProduct.metadata.pattern} onChange={e => updateMetadataField('pattern', e.target.value)} options={['Solid','Stripes','Checks','Graphic','Floral','Abstract']} />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <DarkSelect label="Fit" value={editedProduct.metadata.fit} onChange={e => updateMetadataField('fit', e.target.value)} options={['Slim','Regular','Relaxed','Oversized','Cropped','Baggy','Tapered']} />
-            <DarkSelect label="Season" value={editedProduct.metadata.season} onChange={e => updateMetadataField('season', e.target.value)} options={['Summer','Winter','Monsoon','All-season']} />
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex flex-col gap-3">
-          <button
-            onClick={() => handleConfirm(true)}
-            className="w-full py-4 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-500/30 transition-all active:scale-95"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-            </svg>
-            Approve &amp; Add to Wardrobe
-          </button>
-          <button
-            onClick={() => handleConfirm(false)}
-            className="w-full py-3.5 text-sm font-bold text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-2xl transition duration-300"
-          >
-            Discard &amp; Start Over
-          </button>
         </div>
       </div>
     );

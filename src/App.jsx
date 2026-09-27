@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './AuthContext';
+import AppShell from './components/AppShell';
 import Signup from './pages/Signup';
 import OTP from './pages/OTP';
 import Login from './pages/Login';
@@ -14,6 +15,9 @@ import Wishlist from './pages/Wishlist';
 import MunderTesting from './pages/MunderTesting';
 
 const loggedInPages = new Set(['home', 'onboarding', 'add-product', 'profile', 'edit-preferences', 'wardrobe', 'ai-drip', 'wishlist', 'munder-testing']);
+
+// Pages that render inside the authenticated app shell.
+const shellPages = new Set(['home', 'add-product', 'profile', 'edit-preferences', 'wardrobe', 'ai-drip', 'wishlist', 'munder-testing']);
 
 function getInitialPage() {
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
@@ -68,11 +72,15 @@ function App() {
 
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-[#e0e0e0] flex items-center justify-center font-sans sm:py-8">
-        <div className="w-full h-[100dvh] sm:w-[400px] sm:h-[800px] bg-[#f0f0f0] sm:rounded-[3rem] sm:shadow-2xl overflow-hidden relative sm:border-[8px] sm:border-white flex flex-col">
+      {shellPages.has(currentPage) ? (
+        <AppShell currentPage={currentPage} onNavigate={navigate}>
+          {renderPage()}
+        </AppShell>
+      ) : (
+        <div className="w-full min-h-dvh bg-[#f4f4f5] flex items-center justify-center font-sans sm:p-6 lg:p-8">
           {renderPage()}
         </div>
-      </div>
+      )}
     </AuthProvider>
   );
 }
