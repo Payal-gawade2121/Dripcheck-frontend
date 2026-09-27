@@ -89,66 +89,81 @@ export default function EditPreferences({ onNavigate }) {
 
   return (
     <div className="w-full h-full flex flex-col bg-[#f9fafb] relative overflow-hidden">
-      {/* Header */}
-      <div className="px-6 pt-12 pb-6 bg-white border-b border-gray-100 shadow-sm rounded-b-3xl flex items-center gap-4">
-        <button
-          onClick={() => onNavigate('profile')}
-          className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-gray-600">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 leading-tight">Edit Preferences</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Change your style preferences</p>
+      <div className="flex-1 overflow-y-auto app-scroll">
+        <div className="px-5 sm:px-8 xl:px-12 py-8 xl:py-10 max-w-[1400px] mx-auto">
+
+          {/* Header */}
+          <div className="flex items-start gap-4">
+            <button
+              onClick={() => onNavigate('profile')}
+              className="w-10 h-10 shrink-0 bg-white border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+              aria-label="Back to profile"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-gray-600">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-2xl lg:text-[2rem] font-bold text-gray-900 leading-tight tracking-tight">Edit Preferences</h1>
+              <p className="text-sm lg:text-[15px] text-gray-500 mt-1.5">
+                Tune your style profile so recommendations get sharper.
+              </p>
+            </div>
+          </div>
+
+          {/* Scrollable content */}
+          <div className="mt-8">
+            {loading ? (
+              <div className="flex justify-center py-24 text-gray-400 text-sm">Loading preferences...</div>
+            ) : error && !questions.length ? (
+              <div className="text-center text-rose-500 text-sm py-24">{error}</div>
+            ) : (
+              <div className="grid gap-5 lg:grid-cols-2 items-start">
+                {questions.map((q) => {
+                  const isColor = isColorQuestion(q);
+                  const isSingle = q.question_type === 'single_choice';
+                  const selected = answers[q.id] || [];
+                  const allOptions = [
+                    ...q.options.map((o) => (isColor ? { label: o.text, value: o.text, color: KNOWN_COLORS[o.text] } : o.text)),
+                    ...customOptionsFor(q),
+                  ];
+
+                  return (
+                    <div key={q.id} className="bg-white border border-gray-200/80 rounded-3xl p-6">
+                      <label className="text-[15px] font-semibold text-gray-900 mb-3 block">{q.question_text}</label>
+                      <Chips
+                        options={allOptions}
+                        selectedOptions={selected}
+                        onChange={(val) => handleChange(q.id, val)}
+                        multiSelect={!isSingle}
+                        colorMode={isColor}
+                      />
+                    </div>
+                  );
+                })}
+
+                {error && questions.length > 0 && (
+                  <p className="lg:col-span-2 text-rose-500 text-sm text-center">{error}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="h-28" />
         </div>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-28 px-6 mt-6">
-        {loading ? (
-          <div className="flex justify-center py-16 text-gray-400 text-sm">Loading preferences...</div>
-        ) : error && !questions.length ? (
-          <div className="text-red-500 text-sm text-center py-16">{error}</div>
-        ) : (
-          <div className="space-y-4">
-            {questions.map((q) => {
-              const isColor = isColorQuestion(q);
-              const isSingle = q.question_type === 'single_choice';
-              const selected = answers[q.id] || [];
-              const allOptions = [
-                ...q.options.map((o) => (isColor ? { label: o.text, value: o.text, color: KNOWN_COLORS[o.text] } : o.text)),
-                ...customOptionsFor(q),
-              ];
-
-              return (
-                <div key={q.id} className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_8px_30px_rgb(0,0,0,0.03)]">
-                  <label className="text-sm font-semibold text-gray-900 mb-2 block">{q.question_text}</label>
-                  <Chips
-                    options={allOptions}
-                    selectedOptions={selected}
-                    onChange={(val) => handleChange(q.id, val)}
-                    multiSelect={!isSingle}
-                    colorMode={isColor}
-                  />
-                </div>
-              );
-            })}
-
-            {error && questions.length > 0 && (
-              <p className="text-red-500 text-sm text-center">{error}</p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Submit button - appears when something changed */}
+      {/* Submit bar — sticks to the bottom only while there are unsaved changes */}
       {hasChanges && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-[368px] z-20">
-          <Button onClick={handleSubmit} disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit'}
-          </Button>
+        <div className="shrink-0 border-t border-gray-200 bg-white/90 backdrop-blur px-5 sm:px-8 py-4">
+          <div className="max-w-[1400px] mx-auto flex items-center gap-4">
+            <p className="hidden sm:block text-sm text-gray-500">You have unsaved changes.</p>
+            <div className="sm:w-64 ml-auto">
+              <Button onClick={handleSubmit} disabled={submitting}>
+                {submitting ? 'Submitting...' : 'Submit'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
